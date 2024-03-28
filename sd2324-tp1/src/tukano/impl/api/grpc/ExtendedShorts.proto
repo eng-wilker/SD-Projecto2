@@ -1,0 +1,43 @@
+
+syntax = "proto3";
+
+import "src/tukano/api/grpc/Shorts.proto";
+
+
+option java_package = "tukano.impl.grpc.generated_java";
+option java_outer_classname = "ExtendedShortsProtoBuf";
+
+
+
+service ExtendedShorts {
+
+	rpc createShort( CreateShortArgs ) returns (CreateShortResult);
+
+	rpc deleteShort( DeleteShortArgs ) returns (DeleteShortResult);
+
+	rpc getShort( GetShortArgs ) returns (GetShortResult);
+
+	rpc getShorts( GetShortsArgs ) returns (GetShortsResult);
+
+	rpc follow( FollowArgs) returns (FollowResult);
+
+	rpc followers( FollowersArgs ) returns (FollowersResult);
+
+	rpc like( LikeArgs) returns (LikeResult);
+
+	rpc likes( LikesArgs ) returns (LikesResult);
+
+	rpc getFeed( GetFeedArgs) returns (GetFeedResult);
+
+	rpc deleteAllShorts( DeleteAllShortsArgs ) returns (DeleteAllShortsResult);
+
+}
+
+message DeleteAllShortsArgs {
+	string userId = 1;
+	string password = 2;
+}
+
+message DeleteAllShortsResult {
+
+}
