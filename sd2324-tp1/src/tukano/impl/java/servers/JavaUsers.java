@@ -35,15 +35,16 @@ public class JavaUsers implements Users {
 	public Result<User> getUser(String userId, String pwd) {
 		Log.info("getUser : user = " + userId + "; pwd = " + pwd);
 
-		if (userId == null || pwd == null) {
+		if (userId == null)
 			return error(BAD_REQUEST);
-		}
+
 
 		var res = Hibernate.getInstance().getOne(userId, User.class);
 		if (!res.isOK() && res.error() == NOT_FOUND)
 			return res;
 
-		if (!pwd.equals(res.value().getPwd()))
+		var user = res.value();
+		if ( ! user.getPwd().equals( pwd ))
 			return error(FORBIDDEN);
 
 		return res;
