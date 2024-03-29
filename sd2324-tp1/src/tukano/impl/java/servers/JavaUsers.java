@@ -54,10 +54,14 @@ public class JavaUsers implements Users {
 	public Result<User> updateUser(String userId, String pwd, User user) {
 		Log.info("update : " + userId + ":" + pwd + ":" + user);
 
-		if (user.userId() == null || user.pwd() == null)
+		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);
 
-		return Hibernate.getInstance().updateOne(user);
+		var ures = Hibernate.getInstance().getOne(userId, User.class);
+		if( ! ures.isOK() )
+			return error( ures.error() );
+		
+		return Hibernate.getInstance().updateOne( ures.value().copyFrom(user ));
 	}
 
 	@Override

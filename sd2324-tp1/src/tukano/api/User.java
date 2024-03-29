@@ -70,4 +70,11 @@ public class User {
 	public User copy() {
 		return new User(userId, "", email, displayName);
 	}
+	
+	public User copyFrom( User other ) {
+		return new User( userId, 
+				other.pwd != null ? other.pwd : pwd,
+				other.email != null ? other.email : email, 
+				other.displayName != null ? other.displayName : displayName);
+	}
 }
