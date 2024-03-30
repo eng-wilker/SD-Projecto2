@@ -4,7 +4,10 @@ import static tukano.impl.grpc.common.DataModelAdaptor.Short_to_GrpcShort;
 
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
+import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.grpc.generated_java.ExtendedShortsGrpc;
+import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsArgs;
+import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
@@ -23,10 +26,7 @@ import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikeArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikeResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesResult;
-import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.*;
-
 import tukano.impl.java.servers.JavaShorts;
-import tukano.impl.api.java.ExtendedShorts;
 
 public class GrpcShortsServerStub extends AbstractGrpcStub implements ExtendedShortsGrpc.AsyncService {
 

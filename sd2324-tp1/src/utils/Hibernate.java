@@ -151,20 +151,25 @@ public class Hibernate {
 	}
 	
 	public <T> Result<T> updateOne(T obj) {
+		Transaction tx = null;
 		try(var session = sessionFactory.openSession()) {
-			var res = session.merge(obj);
+			tx = session.beginTransaction();
+			var res = session.merge(obj);			
+			tx.commit();	
 			if( res == null )
 				return Result.error( ErrorCode.NOT_FOUND );
 			else
 				return Result.ok( res );
 		} catch (Exception e) {
+			if (tx!=null) tx.rollback();
 		    throw e;
 		}
 	}
 	
 	public Result<Void> deleteOne(Object obj) {
 		try(var session = sessionFactory.openSession()) {
-			session.remove(obj);;
+			session.remove(obj);
+			session.flush();
 			return Result.ok();
 		} catch (Exception e) {
 		    throw e;

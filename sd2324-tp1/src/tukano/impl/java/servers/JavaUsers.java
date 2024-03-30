@@ -51,8 +51,8 @@ public class JavaUsers implements Users {
 	}
 
 	@Override
-	public Result<User> updateUser(String userId, String pwd, User user) {
-		Log.info("update : " + userId + ":" + pwd + ":" + user);
+	public Result<User> updateUser(String userId, String pwd, User other) {
+		Log.info("update : " + userId + ":" + pwd + ":" + other);
 
 		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);
@@ -61,7 +61,11 @@ public class JavaUsers implements Users {
 		if( ! ures.isOK() )
 			return error( ures.error() );
 		
-		return Hibernate.getInstance().updateOne( ures.value().copyFrom(user ));
+		var user = ures.value();
+		if( user.getPwd().equals( pwd ))
+			return Hibernate.getInstance().updateOne( user.updateFrom( other ) );
+		else
+			return error( FORBIDDEN );
 	}
 
 	@Override
@@ -81,7 +85,10 @@ public class JavaUsers implements Users {
 
 		final var QUERY_FMT = "SELECT * FROM User u WHERE u.userId LIKE '%s%%'";
 
-		var hits = Hibernate.getInstance().sql(String.format(QUERY_FMT, pattern), User.class).stream().map(User::copy)
+		var hits = Hibernate.getInstance()
+				.sql(String.format(QUERY_FMT, pattern), User.class)
+				.stream()
+				.map(User::copyWithoutPassword)
 				.toList();
 
 		return ok(hits);

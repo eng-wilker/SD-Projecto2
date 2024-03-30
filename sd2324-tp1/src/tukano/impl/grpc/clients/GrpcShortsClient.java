@@ -9,6 +9,7 @@ import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.grpc.generated_java.ExtendedShortsGrpc;
+import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowArgs;
@@ -18,7 +19,6 @@ import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.GetShortsArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikeArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesArgs;
-import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.*;
 
 public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 

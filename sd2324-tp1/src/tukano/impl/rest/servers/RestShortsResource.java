@@ -4,8 +4,6 @@ import java.util.List;
 
 import jakarta.inject.Singleton;
 import tukano.api.Short;
-import tukano.api.java.Shorts;
-import tukano.api.rest.RestShorts;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.api.rest.RestExtendedShorts;
 import tukano.impl.java.servers.JavaShorts;

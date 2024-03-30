@@ -67,11 +67,11 @@ public class User {
 		return "User [userId=" + userId + ", pwd=" + pwd + ", email=" + email + ", displayName=" + displayName + "]";
 	}
 	
-	public User copy() {
+	public User copyWithoutPassword() {
 		return new User(userId, "", email, displayName);
 	}
 	
-	public User copyFrom( User other ) {
+	public User updateFrom( User other ) {
 		return new User( userId, 
 				other.pwd != null ? other.pwd : pwd,
 				other.email != null ? other.email : email, 
