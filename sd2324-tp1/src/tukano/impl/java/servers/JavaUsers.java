@@ -82,9 +82,9 @@ public class JavaUsers implements Users {
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
 		Log.info("search : " + pattern);
+		pattern = pattern.toUpperCase();
 
-		final var QUERY_FMT = "SELECT * FROM User u WHERE u.userId LIKE '%s%%'";
-
+		final var QUERY_FMT = "SELECT * FROM User u WHERE UPPER(u.userId) LIKE '%%%s%%'";
 		var hits = Hibernate.getInstance()
 				.sql(String.format(QUERY_FMT, pattern), User.class)
 				.stream()

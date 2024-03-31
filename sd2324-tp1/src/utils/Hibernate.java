@@ -167,9 +167,12 @@ public class Hibernate {
 	}
 	
 	public Result<Void> deleteOne(Object obj) {
+		Transaction tx = null;
 		try(var session = sessionFactory.openSession()) {
+			tx = session.beginTransaction();
 			session.remove(obj);
 			session.flush();
+			tx.commit();	
 			return Result.ok();
 		} catch (Exception e) {
 		    throw e;
