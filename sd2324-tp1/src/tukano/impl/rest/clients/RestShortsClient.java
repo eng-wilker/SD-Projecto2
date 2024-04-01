@@ -1,15 +1,10 @@
 package tukano.impl.rest.clients;
 
-import static tukano.api.java.Result.error;
-import static tukano.api.java.Result.ok;
-
 import java.util.List;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.GenericType;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.api.rest.RestShorts;
@@ -22,155 +17,105 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 	}
 
 	public Result<Short> _createShort(String userId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId)
 				.queryParam(RestShorts.PWD, password )
 				.request()
 				.accept(MediaType.APPLICATION_JSON)
-				.post( Entity.json(null));
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok( r.readEntity( Short.class ));
+				.post( Entity.json(null)), Short.class);
 	}
 
 	public Result<Void> _deleteShort(String shortId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(shortId)
 				.queryParam(RestShorts.PWD, password )
 				.request()
-				.delete();
-
-		var status = r.getStatus();
-		if( status != Status.NO_CONTENT.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok();
+				.delete());
 	}
 
 	public Result<Short> _getShort(String shortId) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(shortId)
 				.request()
-				.get();
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok( r.readEntity( Short.class ));
+				.get(), Short.class);
 	}
 
 	public Result<List<String>> _getShorts(String userId) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId)
 				.path(RestShorts.SHORTS)
 				.request()
 				.accept( MediaType.APPLICATION_JSON)
-				.get();
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok(r.readEntity( new GenericType<List<String>>() {}));
+				.get(), new GenericType<List<String>>() {});
 	}
 
 	public Result<Void> _follow(String userId1, String userId2, boolean isFollowing, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId1)
 				.path(userId2)
 				.path(RestShorts.FOLLOWERS)
 				.queryParam(RestShorts.PWD, password )
 				.request()
-				.post( Entity.entity(isFollowing, MediaType.APPLICATION_JSON));
-
-		var status = r.getStatus();
-		if( status != Status.NO_CONTENT.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok();
+				.post( Entity.entity(isFollowing, MediaType.APPLICATION_JSON)));
 	}
 
 	public Result<List<String>> _followers(String userId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId)
 				.path(RestShorts.FOLLOWERS)
 				.queryParam(RestShorts.PWD, password )
 				.request()
 				.accept( MediaType.APPLICATION_JSON)
-				.get();
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok(r.readEntity( new GenericType<List<String>>() {}));
+				.get(), new GenericType<List<String>>() {});
 	}
 
 	public Result<Void> _like(String shortId, String userId, boolean isLiked, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(shortId)
 				.path(userId)
 				.path(RestShorts.LIKES)
 				.queryParam(RestShorts.PWD, password )
 				.request()
-				.post( Entity.entity(isLiked, MediaType.APPLICATION_JSON));
-
-		var status = r.getStatus();
-		if( status != Status.NO_CONTENT.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok();
+				.post( Entity.entity(isLiked, MediaType.APPLICATION_JSON)));
 	}
 
 	public Result<List<String>> _likes(String shortId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(shortId)
 				.path(RestShorts.LIKES)
 				.queryParam(RestShorts.PWD, password )
 				.request()
 				.accept( MediaType.APPLICATION_JSON)
-				.get();
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok(r.readEntity( new GenericType<List<String>>() {}));
+				.get(), new GenericType<List<String>>() {});
 	}
 
 	public Result<List<String>> _getFeed(String userId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId)
 				.path(RestShorts.FEED)
 				.queryParam(RestShorts.PWD, password )
 				.request()
 				.accept( MediaType.APPLICATION_JSON)
-				.get();
-
-		var status = r.getStatus();
-		if( status != Status.OK.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok(r.readEntity( new GenericType<List<String>>() {}));
+				.get(), new GenericType<List<String>>() {});
 	}
 
 	public Result<Void> _deleteAllShorts(String userId, String password) {
-		Response r = target
+		return super.toJavaResult(
+				target
 				.path(userId)
 				.path(RestShorts.SHORTS)
 				.queryParam(RestShorts.PWD, password )
 				.request()
-				.delete();
-
-		var status = r.getStatus();
-		if( status != Status.NO_CONTENT.getStatusCode() )
-			return error( getErrorCodeFrom(status));
-		else
-			return ok();
+				.delete());
 	}
 	
 	@Override
