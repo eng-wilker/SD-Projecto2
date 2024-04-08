@@ -1,11 +1,13 @@
 package tukano.impl.java.servers;
 
+
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
 import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
 import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import static tukano.api.java.Result.ErrorCode.TIMEOUT;
+import static tukano.impl.java.clients.Clients.BlobsClients;
 import static tukano.impl.java.clients.Clients.UsersClients;
 
 import java.time.Duration;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
@@ -28,7 +31,7 @@ import tukano.impl.java.servers.data.Likes;
 import utils.Hibernate;
 
 public class JavaShorts implements ExtendedShorts {
-	AtomicLong counter = new AtomicLong(0L);
+	AtomicLong counter = new AtomicLong(1000L);
 	
 	private static final long USER_CACHE_EXPIRATION = 3000;
 
@@ -66,6 +69,8 @@ public class JavaShorts implements ExtendedShorts {
 					return ok( shrt.value().copyWith( likes.get(0) ) );
 				}
 			});
+	
+	
 	@Override
 	public Result<Short> createShort(String userId, String password) {
 		var ures = getUser(userId, password);
@@ -73,13 +78,17 @@ public class JavaShorts implements ExtendedShorts {
 			return error( ures.error() );
 		
 		var shortId = String.format("%s-%d", userId, counter.incrementAndGet());
-		var shrt = new Short(shortId, userId, "");
+		var blobUrl = String.format("%s/%s", getLeastLoadedBlobServerURI(), shortId); 
+		var shrt = new Short(shortId, userId, blobUrl);
 		var res = Hibernate.getInstance().persist( shrt );
+		
 		if( res.isOK() )
 			return ok( shrt );
 		else
 			return error( res.error() );
 	}
+
+	
 
 	@Override
 	public Result<Short> getShort(String shortId) {
@@ -193,11 +202,7 @@ public class JavaShorts implements ExtendedShorts {
 		
 	protected Result<User> getUser( String userId, String pwd) {
 		try {
-			if( pwd.equals(""))
-				return error(FORBIDDEN );
-			
-			return ok(new User( userId, pwd, "", "" ));
-			//return users.get( new Credentials(userId, pwd));
+			return usersCache.get( new Credentials(userId, pwd));
 		} catch (Exception x) {
 			x.printStackTrace();
 			return Result.error(ErrorCode.INTERNAL_ERROR);
@@ -213,35 +218,57 @@ public class JavaShorts implements ExtendedShorts {
 		}
 	}
 
+	// Extended API 
+	
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password) {
 		var ures = getUser(userId, password);
 		if( ! ures.isOK() ) 
 			return error( ures.error() );
 		
-		var sres = this.getShorts(userId);
-		if( ! sres.isOK() )
-			return error( sres.error() );
-		
-		var shorts = sres.value();
-		shortsCache.invalidateAll( shorts );
-
 		List<Object> toDelete = new ArrayList<>();
 
 		final var QUERY_FMT1 = "SELECT * FROM Short s WHERE s.ownerId = '%s'";		
-		Hibernate.getInstance().sql(String.format(QUERY_FMT1, userId), Short.class).forEach( toDelete::add );
+		Hibernate.getInstance().sql(String.format(QUERY_FMT1, userId), Short.class).forEach( s -> {
+			shortsCache.invalidate( s.getShortId() );
+			toDelete.add( s );
+		});
 		
 		final var QUERY_FMT2 = "SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'";		
 		Hibernate.getInstance().sql(String.format(QUERY_FMT2, userId, userId), Following.class).forEach( toDelete::add );
 		
 		final var QUERY_FMT3 = "SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'";		
-		Hibernate.getInstance().sql(String.format(QUERY_FMT3, userId, userId), Likes.class).forEach( (l) -> {
+		Hibernate.getInstance().sql(String.format(QUERY_FMT3, userId, userId), Likes.class).forEach( l -> {
 			shortsCache.invalidate( l.getShortId() );
 			toDelete.add( l );
 		});
 		
 		Hibernate.getInstance().delete( toDelete.toArray() );
 		return ok();
+	}
+
+	// Extended API 
+
+	@Override
+	public Result<Void> verifyBlobURI(String blobURI) {
+		return ok();
+	}
+	
+
+
+	static record BlobServerCount(String baseURI, Long count) {};	
+	private String getLeastLoadedBlobServerURI() {		
+		final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(?:http:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
+		var hits = Hibernate.getInstance().sql(QUERY, BlobServerCount.class);
+		
+		var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
+
+		for( var uri : BlobsClients.instances() )
+			 candidates.putIfAbsent( uri.toString(), 0L);
+
+		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
+		
+		return res.isEmpty() ? "???" : res.get().getKey();
 	}
 }
 

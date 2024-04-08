@@ -4,4 +4,5 @@ import tukano.api.java.Blobs;
 
 public interface ExtendedBlobs extends Blobs {
 
+	void deleteAllBlobs( String userId );
 }

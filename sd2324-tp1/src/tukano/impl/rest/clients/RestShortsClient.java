@@ -118,6 +118,14 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 				.delete());
 	}
 	
+	public Result<Void> _verifyBlobURI(String blobId) {
+		return super.toJavaResult(
+				target
+				.path(blobId)
+				.request()
+				.get());
+	}
+		
 	@Override
 	public Result<Short> createShort(String userId, String password) {
 		return super.reTry( () -> _createShort(userId, password));
@@ -166,5 +174,11 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password) {
 		return super.reTry( () -> _deleteAllShorts(userId, password));
+	}
+
+	@Override
+	public Result<Void> verifyBlobURI(String blobURI) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }

@@ -64,5 +64,11 @@ public class RestShortsResource extends RestResource implements RestExtendedShor
 	@Override
 	public void deleteAllShorts(String userId, String password) {
 		super.resultOrThrow( impl.deleteAllShorts(userId, password));
+	}
+
+
+	@Override
+	public void verifyBlobURI(String blobId) {
+		super.resultOrThrow( impl.verifyBlobURI(blobId));		
 	}	
 }

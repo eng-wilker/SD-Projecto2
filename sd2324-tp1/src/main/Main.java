@@ -1,7 +1,11 @@
 package main;
 
+import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.impl.java.clients.Clients;
+import tukano.impl.rest.servers.RestBlobsServer;
+import tukano.impl.rest.servers.RestShortsServer;
+import tukano.impl.rest.servers.RestUsersServer;
 
 public class Main {
 	
@@ -11,44 +15,61 @@ public class Main {
 	}
 	
 	public static void main(String[] args ) throws Exception {
+		new Thread( () -> {	
+			RestUsersServer.main( new String[] {} );
+		} ).start();		
+		new Thread( () -> {	
+			RestShortsServer.main( new String[] {} );
+		} ).start();
+		new Thread( () -> {	
+			RestBlobsServer.main( new String[] {"-port", "9001"} );
+		} ).start();
+		new Thread( () -> {	
+			RestBlobsServer.main( new String[] {"-port", "9002"} );
+		} ).start();
+		new Thread( () -> {	
+			RestBlobsServer.main( new String[] {"-port", "9003"} );
+		} ).start();
+
+		Thread.sleep(3000);
 		
-//		var users = Clients.UsersClients.get();
+		var users = Clients.UsersClients.get();
 		var shorts = Clients.ShortsClients.get();
 		
-//		 show(users.createUser( new User("wales", "12345", "jimmy@wikipedia.pt", "Jimmy Wales") ));
-//		 
-//		 show(users.createUser( new User("liskov", "12345", "liskov@mit.edu", "Barbara Liskov") ));
-//		 
-//		 show(users.updateUser("wales", "12345", new User("wales", "12345", "jimmy@wikipedia.com", "" ) ));
-//		 
-//		 show(users.deleteUser("wales", "12345"));
-//		 
-//		 show(users.searchUsers(""));
+		 show(users.createUser( new User("wales", "12345", "jimmy@wikipedia.pt", "Jimmy Wales") ));
+		 
+		 show(users.createUser( new User("liskov", "12345", "liskov@mit.edu", "Barbara Liskov") ));
+		 
+		 show(users.updateUser("wales", "12345", new User("wales", "12345", "jimmy@wikipedia.com", "" ) ));
+		 
+		 show(users.deleteUser("wales", "12345"));
+		 
+		 show(users.searchUsers(""));
 		
-		show(shorts.createShort("smd", "1234"));
-		show(shorts.createShort("nmp", "1234"));
-		show(shorts.createShort("nmp", "1234"));
-		show(shorts.createShort("nmp", "1234"));
-		show(shorts.createShort("nmp", "1234"));
+		show(shorts.createShort("liskov", "1234"));
+		show(shorts.createShort("wales", "1234"));
+		show(shorts.createShort("wales", "1234"));
+		show(shorts.createShort("wales", "1234"));
+		show(shorts.createShort("wales", "1234"));
 		
-		var s2 = "nmp-2";
+		var s2 = "wales-2";
 		
-		show(shorts.follow("smd", "nmp", true, "1234"));
-		show(shorts.followers("nmp", "1234"));
+		show(shorts.follow("liskov", "wales", true, "1234"));
+		show(shorts.followers("wales", "1234"));
 		
-		show(shorts.like(s2, "smd", true, "1234"));
-		show(shorts.like(s2, "nmp", true, "1234"));
+		show(shorts.like(s2, "liskov", true, "1234"));
+		show(shorts.like(s2, "liskov", true, "1234"));
 		show(shorts.likes(s2 , "1234"));
-		show(shorts.getFeed("smd", "1234"));
+		show(shorts.getFeed("liskov", "1234"));
 		show(shorts.getShort( s2 ));
 		
-		show(shorts.getShorts( "nmp" ));
+		show(shorts.getShorts( "wales" ));
 		
-		show(shorts.deleteAllShorts("smd", "12345"));
+		show(shorts.deleteAllShorts("wales", "12345"));
 
-		show(shorts.followers("nmp", "1234"));
+		show(shorts.followers("wales", "1234"));
 
-		show(shorts.getFeed("smd", "1234"));
+		show(shorts.getFeed("liskov", "1234"));
 
 		show(shorts.getShort( s2 ));
 

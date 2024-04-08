@@ -8,11 +8,12 @@ import com.google.protobuf.ByteString;
 
 import tukano.api.java.Blobs;
 import tukano.api.java.Result;
+import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.DownloadArgs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
 
-public class GrpcBlobsClient extends GrpcClient implements Blobs {
+public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	final BlobsGrpc.BlobsBlockingStub stub;
 
@@ -65,6 +66,12 @@ public class GrpcBlobsClient extends GrpcClient implements Blobs {
 	@Override
 	public Result<Void> downloadToSink(String blobId, Consumer<byte[]> sink) {
 		return super.reTry( () -> _downloadToSink(blobId, sink));
+	}
+
+	@Override
+	public void deleteAllBlobs(String userId) {
+		// TODO Auto-generated method stub
+		
 	}
 	
 }

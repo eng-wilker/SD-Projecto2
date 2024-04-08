@@ -7,6 +7,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import tukano.api.java.Blobs;
 import tukano.impl.rest.servers.utils.CustomLoggingFilter;
 import tukano.impl.rest.servers.utils.GenericExceptionMapper;
+import utils.Args;
 
 
 public class RestBlobsServer extends AbstractRestServer {
@@ -14,8 +15,8 @@ public class RestBlobsServer extends AbstractRestServer {
 	
 	private static Logger Log = Logger.getLogger(RestBlobsServer.class.getName());
 
-	RestBlobsServer() {
-		super( Log, Blobs.NAME, PORT);
+	RestBlobsServer(int port) {
+		super( Log, Blobs.NAME, port);
 	}
 	
 	
@@ -26,7 +27,7 @@ public class RestBlobsServer extends AbstractRestServer {
 		config.register(new CustomLoggingFilter());
 	}
 	
-	public static void main(String[] args) throws Exception {
-		new RestBlobsServer().start();
+	public static void main(String[] args) {
+		new RestBlobsServer(Args.valueOf(args, "-port", PORT)).start();
 	}	
 }

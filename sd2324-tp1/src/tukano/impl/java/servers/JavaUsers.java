@@ -7,11 +7,13 @@ import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
 import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 
 import java.util.List;
+import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
 import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.api.java.Users;
+import tukano.impl.java.clients.Clients;
 import utils.Hibernate;
 
 public class JavaUsers implements Users {
@@ -76,6 +78,10 @@ public class JavaUsers implements Users {
 		if (res.isOK())
 			Hibernate.getInstance().deleteOne(res.value());
 
+		Executors.defaultThreadFactory().newThread( () -> {
+			Clients.ShortsClients.get().deleteAllShorts(userId, pwd);
+			Clients.BlobsClients.all().forEach( c -> c.deleteAllBlobs(userId));
+		});
 		return res;
 	}
 

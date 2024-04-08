@@ -7,4 +7,5 @@ public interface ExtendedShorts extends Shorts {
 
 	Result<Void> deleteAllShorts( String userId, String password );
 	
+	Result<Void> verifyBlobURI(String blobURI);
 }

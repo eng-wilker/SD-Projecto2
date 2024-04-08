@@ -26,7 +26,7 @@ public class RestUsersServer extends AbstractRestServer {
 		config.register(new CustomLoggingFilter());
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 		new RestUsersServer().start();
 	}	
 }

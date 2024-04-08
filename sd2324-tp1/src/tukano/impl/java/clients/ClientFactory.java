@@ -1,6 +1,7 @@
 package tukano.impl.java.clients;
 
 import java.net.URI;
+import java.util.Collection;
 import java.util.function.Function;
 
 import com.google.common.cache.CacheBuilder;
@@ -57,4 +58,12 @@ public class ClientFactory<T> {
 			throw new RuntimeException( Result.ErrorCode.INTERNAL_ERROR.toString());
 		}
 	}	
+	
+	public URI[] instances() {
+		return Discovery.getInstance().knownUrisOf(serviceName, 1);		
+	}
+	
+	public Collection<T> all() {
+		return clients.asMap().values();
+	}
 }
