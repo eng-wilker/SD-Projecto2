@@ -6,24 +6,24 @@ import java.util.function.Consumer;
 
 import com.google.protobuf.ByteString;
 
-import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.grpc.generated_java.BlobsGrpc;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.DownloadArgs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
+import tukano.impl.grpc.generated_java.ExtendedBlobsGrpc;
+import tukano.impl.grpc.generated_java.ExtendedBlobsProtoBuf.DeleteAllBlobsArgs;
 
 public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
-	final BlobsGrpc.BlobsBlockingStub stub;
+	final ExtendedBlobsGrpc.ExtendedBlobsBlockingStub stub;
 
 	public GrpcBlobsClient(String serverURI) {
 		super(serverURI);
-		stub = BlobsGrpc.newBlockingStub( super.channel )
+		stub = ExtendedBlobsGrpc.newBlockingStub( super.channel )
 				.withDeadlineAfter(GRPC_TIMEOUT, TimeUnit.MILLISECONDS);
 	}
 
-	public Result<Void> _upload(String blobId, byte[] bytes) {
+	private Result<Void> _upload(String blobId, byte[] bytes) {
 		return super.toJavaResult(() -> {
 			stub.upload( UploadArgs.newBuilder()
 				.setData( ByteString.copyFrom(bytes))
@@ -32,7 +32,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 		});
 	}
 
-	public Result<byte[]> _download(String blobId) {
+	private Result<byte[]> _download(String blobId) {
 		return super.toJavaResult(() -> {
 			var res = stub.download( DownloadArgs.newBuilder()
 				.setBlobId(blobId)
@@ -43,7 +43,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 		});
 	}
 
-	public Result<Void> _downloadToSink(String blobId, Consumer<byte[]> sink) {
+	private Result<Void> _downloadToSink(String blobId, Consumer<byte[]> sink) {
 		return super.toJavaResult(() -> {
 			var res = stub.download( DownloadArgs.newBuilder()
 				.setBlobId(blobId)
@@ -52,6 +52,13 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 			res.forEachRemaining( (chunk) -> sink.accept( chunk.getChunk().toByteArray()));	
 		});
 	}
+	
+	private Result<Void> _deleteAllBlobs(String userId) {
+		return super.toJavaResult(() -> {
+			stub.deleteAllBlobs( DeleteAllBlobsArgs.newBuilder()
+				.setUserId(userId)
+				.build());			
+		});	}
 	
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
@@ -70,8 +77,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	@Override
 	public void deleteAllBlobs(String userId) {
-		// TODO Auto-generated method stub
-		
+		super.reTry( () -> _deleteAllBlobs( userId ) );
 	}
 	
 }

@@ -1,5 +1,8 @@
 package main;
 
+import java.io.File;
+import java.net.URI;
+
 import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.impl.java.clients.Clients;
@@ -31,10 +34,11 @@ public class Main {
 			RestBlobsServer.main( new String[] {"-port", "9003"} );
 		} ).start();
 
-		Thread.sleep(3000);
+		Thread.sleep(5000);
 		
 		var users = Clients.UsersClients.get();
 		var shorts = Clients.ShortsClients.get();
+		var blobs = Clients.BlobsClients.all();
 		
 		 show(users.createUser( new User("wales", "12345", "jimmy@wikipedia.pt", "Jimmy Wales") ));
 		 
@@ -46,33 +50,55 @@ public class Main {
 		 
 		 show(users.searchUsers(""));
 		
-		show(shorts.createShort("liskov", "1234"));
-		show(shorts.createShort("wales", "1234"));
-		show(shorts.createShort("wales", "1234"));
-		show(shorts.createShort("wales", "1234"));
-		show(shorts.createShort("wales", "1234"));
 		
-		var s2 = "wales-2";
+		Result<tukano.api.Short> s1, s2;
 		
-		show(shorts.follow("liskov", "wales", true, "1234"));
-		show(shorts.followers("wales", "1234"));
 		
-		show(shorts.like(s2, "liskov", true, "1234"));
-		show(shorts.like(s2, "liskov", true, "1234"));
-		show(shorts.likes(s2 , "1234"));
-		show(shorts.getFeed("liskov", "1234"));
-		show(shorts.getShort( s2 ));
+		show(s2 = shorts.createShort("liskov", "12345"));
+		
+		show(s1 = shorts.createShort("wales", "12345"));
+		show(shorts.createShort("wales", "12345"));
+		show(shorts.createShort("wales", "12345"));
+		show(shorts.createShort("wales", "12345"));
+		
+		
+		var blobUrl = URI.create(s2.value().getBlobUrl());
+		System.out.println( blobUrl );
+		
+		var blobId = new File( blobUrl.getPath() ).getName();
+		System.out.println( blobId );
+		
+		blobs.forEach( b -> b.upload(blobId, new byte[1024]));
+
+		
+		var s2id = s2.value().getShortId();
+		
+		show(shorts.follow("liskov", "wales", true, "12345"));
+		show(shorts.followers("wales", "12345"));
+		
+		show(shorts.like(s2id, "liskov", true, "12345"));
+		show(shorts.like(s2id, "liskov", true, "12345"));
+		show(shorts.likes(s2id , "12345"));
+		show(shorts.getFeed("liskov", "12345"));
+		show(shorts.getShort( s2id ));
 		
 		show(shorts.getShorts( "wales" ));
 		
 		show(shorts.deleteAllShorts("wales", "12345"));
 
-		show(shorts.followers("wales", "1234"));
+		show(shorts.followers("wales", "12345"));
 
-		show(shorts.getFeed("liskov", "1234"));
+		show(shorts.getFeed("liskov", "12345"));
 
-		show(shorts.getShort( s2 ));
+		show(shorts.getShort( s2id ));
 
+		
+		blobs.forEach( b -> {
+			var r = b.download(blobId);
+			System.out.println( r.value().length );
+			
+		});
+		System.exit(0);
 	}
 	
 	

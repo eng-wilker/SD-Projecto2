@@ -2,7 +2,6 @@ package tukano.impl.rest.clients;
 
 import jakarta.ws.rs.client.Entity;
 import jakarta.ws.rs.core.MediaType;
-import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.api.rest.RestBlobs;
 import tukano.impl.api.java.ExtendedBlobs;
@@ -25,7 +24,7 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 				target.path(blobId)
 				.request()
 				.accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
-				.get());
+				.get(), byte[].class);
 	}
 
 	private Result<Void> _deleteAllBlobs(String userId) {

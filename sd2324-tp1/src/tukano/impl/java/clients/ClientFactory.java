@@ -1,6 +1,7 @@
 package tukano.impl.java.clients;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.function.Function;
 
@@ -64,6 +65,6 @@ public class ClientFactory<T> {
 	}
 	
 	public Collection<T> all() {
-		return clients.asMap().values();
+		return Arrays.asList( instances() ).stream().map( this::get ).toList();
 	}
 }

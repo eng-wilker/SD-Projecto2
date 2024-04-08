@@ -31,7 +31,7 @@ import tukano.impl.java.servers.data.Likes;
 import utils.Hibernate;
 
 public class JavaShorts implements ExtendedShorts {
-	AtomicLong counter = new AtomicLong(1000L);
+	AtomicLong counter = new AtomicLong( totalShortsInDatabase() );
 	
 	private static final long USER_CACHE_EXPIRATION = 3000;
 
@@ -270,5 +270,14 @@ public class JavaShorts implements ExtendedShorts {
 		
 		return res.isEmpty() ? "???" : res.get().getKey();
 	}
+	
+	
+	private long totalShortsInDatabase() {
+		final var QUERY = "SELECT count('*') FROM Short";		
+		var hits = Hibernate.getInstance().sql(QUERY, Long.class);
+		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
+
+	}
+
 }
 

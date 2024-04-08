@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
+import org.hibernate.mapping.Map;
 
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;
@@ -64,11 +65,13 @@ public class RestClient {
 		return Result.error(TIMEOUT);
 	}
 
-	protected <T> Result<T> toJavaResult(Response r) {
+	protected Result<Void> toJavaResult(Response r) {
 		try {
 			var status = r.getStatusInfo().toEnum();
-			if (status == Status.OK && r.hasEntity())
-				return ok(r.readEntity(new GenericType<T>(){}));
+			if (status == Status.OK && r.hasEntity()) {
+				Thread.dumpStack();
+				return ok(null);
+			}
 			else 
 				if( status == Status.NO_CONTENT) return ok();
 			

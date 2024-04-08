@@ -17,7 +17,6 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
 
-import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.java.clients.Clients;
