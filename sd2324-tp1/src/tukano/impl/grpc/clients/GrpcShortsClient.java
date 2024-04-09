@@ -182,10 +182,4 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 	public Result<Void> deleteAllShorts(String userId, String password) {
 		return super.reTry( () -> _deleteAllShorts(userId, password));
 	}
-
-	@Override
-	public Result<Void> verifyBlobURI(String blobURI) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 }

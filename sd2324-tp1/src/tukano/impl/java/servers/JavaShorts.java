@@ -247,14 +247,6 @@ public class JavaShorts implements ExtendedShorts {
 		return ok();
 	}
 
-	// Extended API 
-
-	@Override
-	public Result<Void> verifyBlobURI(String blobURI) {
-		return ok();
-	}
-	
-
 
 	static record BlobServerCount(String baseURI, Long count) {};	
 	private String getLeastLoadedBlobServerURI() {		
