@@ -21,7 +21,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<String> createUser(User user) {
-		Log.info("createUser : " + user);
+		Log.info(String.format("createUser : %s", user));
 
 		if (user.userId() == null || user.pwd() == null || user.displayName() == null || user.email() == null)
 			return error(BAD_REQUEST);
@@ -35,7 +35,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> getUser(String userId, String pwd) {
-		Log.info("getUser : user = " + userId + "; pwd = " + pwd);
+		Log.info(String.format("getUser : userId = %s, pwd = %s", userId, pwd));
 
 		if (userId == null)
 			return error(BAD_REQUEST);
@@ -54,7 +54,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String pwd, User other) {
-		Log.info("update : " + userId + ":" + pwd + ":" + other);
+		Log.info(String.format("updateUser : userId = %s, pwd = %s", userId, pwd));
 
 		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);
@@ -72,7 +72,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> deleteUser(String userId, String pwd) {
-		Log.info("delete : " + userId + ":" + pwd);
+		Log.info(String.format("deleteUser : userId = %s, pwd = %s", userId, pwd));
 
 		var res = getUser(userId, pwd);
 		if (res.isOK())
@@ -87,7 +87,8 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
-		Log.info("search : " + pattern);
+		Log.info(String.format("searchUsers : patterns = %s", pattern));
+
 		pattern = pattern.toUpperCase();
 
 		final var QUERY_FMT = "SELECT * FROM User u WHERE UPPER(u.userId) LIKE '%%%s%%'";
