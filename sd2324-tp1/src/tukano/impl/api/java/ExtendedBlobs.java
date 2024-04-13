@@ -1,8 +1,9 @@
 package tukano.impl.api.java;
 
 import tukano.api.java.Blobs;
+import tukano.api.java.Result;
 
 public interface ExtendedBlobs extends Blobs {
 
-	void deleteAllBlobs( String userId );
+	Result<Void> deleteAllBlobs( String userId );
 }

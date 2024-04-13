@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import com.google.common.cache.CacheBuilder;
@@ -31,6 +32,9 @@ import tukano.impl.java.servers.data.Likes;
 import utils.Hibernate;
 
 public class JavaShorts implements ExtendedShorts {
+	
+	private static Logger Log = Logger.getLogger(JavaShorts.class.getName());
+
 	AtomicLong counter = new AtomicLong( totalShortsInDatabase() );
 	
 	private static final long USER_CACHE_EXPIRATION = 3000;
@@ -73,15 +77,18 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Short> createShort(String userId, String password) {
+		Log.info(String.format("createShort : userId = %s, pwd = %s", userId, password));
+
 		var ures = getUser(userId, password);
 		if( ! ures.isOK() )
 			return error( ures.error() );
-		
+			
 		var shortId = String.format("%s-%d", userId, counter.incrementAndGet());
 		var blobUrl = String.format("%s/%s", getLeastLoadedBlobServerURI(), shortId); 
 		var shrt = new Short(shortId, userId, blobUrl);
+
 		var res = Hibernate.getInstance().persist( shrt );
-		
+
 		if( res.isOK() )
 			return ok( shrt );
 		else
@@ -129,7 +136,7 @@ public class JavaShorts implements ExtendedShorts {
 		if( ! ures1.isOK() )
 			return error( ures1.error() );
 		
-		var ures2 = getUser( userId1, "" );
+		var ures2 = getUser( userId1, "?" );
 		if( ures2.error() != FORBIDDEN )
 			return error( NOT_FOUND );
 		

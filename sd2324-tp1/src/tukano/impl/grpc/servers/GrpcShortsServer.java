@@ -1,5 +1,6 @@
 package tukano.impl.grpc.servers;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import tukano.api.java.Shorts;
@@ -13,7 +14,11 @@ public static final int PORT = 14567;
 		super( Log, Shorts.NAME, PORT, new GrpcShortsServerStub());
 	}
 	
-	public static void main(String[] args) throws Exception {
-		new GrpcShortsServer().start();
+	public static void main(String[] args) {
+		try {
+			new GrpcShortsServer().start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}	
 }

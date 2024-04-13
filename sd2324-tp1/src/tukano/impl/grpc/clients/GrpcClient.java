@@ -21,9 +21,9 @@ import utils.Sleep;
 public class GrpcClient {
 	private static Logger Log = Logger.getLogger(GrpcClient.class.getName());
 
-	protected static final int MAX_RETRIES = 3;
+	protected static final int MAX_RETRIES = 10;
 	protected static final int RETRY_SLEEP = 1000;
-	protected static final int GRPC_TIMEOUT = 10000;
+	protected static final int GRPC_TIMEOUT = 3000;
 	
 	final protected URI server;
 	final protected Channel channel;

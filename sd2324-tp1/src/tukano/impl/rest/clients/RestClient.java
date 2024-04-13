@@ -11,7 +11,6 @@ import java.util.logging.Logger;
 
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.ClientProperties;
-import org.hibernate.mapping.Map;
 
 import jakarta.ws.rs.ProcessingException;
 import jakarta.ws.rs.client.Client;

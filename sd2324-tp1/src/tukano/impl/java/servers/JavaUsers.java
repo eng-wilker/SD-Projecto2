@@ -54,7 +54,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String pwd, User other) {
-		Log.info(String.format("updateUser : userId = %s, pwd = %s", userId, pwd));
+		Log.info(String.format("updateUser : userId = %s, pwd = %s, user: %s", userId, pwd, other));
 
 		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);

@@ -6,11 +6,10 @@ import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.grpc.generated_java.ShortsGrpc;
-import tukano.impl.grpc.generated_java.ExtendedShortsGrpc;
-import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsArgs;
-import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortResult;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortResult;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowArgs;
@@ -137,37 +136,14 @@ public class GrpcShortsServerStub extends AbstractGrpcStub implements ShortsGrpc
 		}
 	}
 	
-	
-//	@Override
-//	public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
-//		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
-//		if( ! res.isOK() )
-//			responseObserver.onError( errorCodeToStatus(res.error()) );
-//		else {
-//			responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
-//			responseObserver.onCompleted();
-//		}
-//    }
-	
-//	static class ExtendedGrpcShortsServerStub extends AbstractGrpcStub implements ExtendedShortsGrpc.AsyncService {
-//
-//		@Override
-//		public ServerServiceDefinition bindService() {
-//			return ExtendedShortsGrpc.bindService(this);
-//		}
-//		
-//		
-//		@Override
-//		public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
-//			var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
-//			if( ! res.isOK() )
-//				responseObserver.onError( errorCodeToStatus(res.error()) );
-//			else {
-//				responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
-//				responseObserver.onCompleted();
-//			}
-//	    }
-//
-//	}
-
+	@Override
+	public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
+		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
+		if( ! res.isOK() )
+			responseObserver.onError( errorCodeToStatus(res.error()) );
+		else {
+			responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
+			responseObserver.onCompleted();
+		}
+    }
 }
