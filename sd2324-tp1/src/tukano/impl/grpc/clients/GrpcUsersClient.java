@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.api.java.Users;
+import tukano.impl.grpc.generated_java.ShortsGrpc;
 import tukano.impl.grpc.generated_java.UsersGrpc;
 import tukano.impl.grpc.generated_java.UsersProtoBuf.CreateUserArgs;
 import tukano.impl.grpc.generated_java.UsersProtoBuf.DeleteUserArgs;
@@ -19,19 +20,24 @@ import tukano.impl.grpc.generated_java.UsersProtoBuf.UpdateUserArgs;
 
 public class GrpcUsersClient extends GrpcClient implements Users {
 
-	final UsersGrpc.UsersBlockingStub stub;
+	final UsersGrpc.UsersBlockingStub _stub;
 
 	public GrpcUsersClient(String serverURI) {
 		super(serverURI);
-		this.stub = UsersGrpc.newBlockingStub( super.channel ).withDeadlineAfter(GRPC_TIMEOUT, TimeUnit.MILLISECONDS);
+		this._stub = UsersGrpc.newBlockingStub( super.channel );
 	}
 
+	private UsersGrpc.UsersBlockingStub  stub() {
+		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+	}
+	
 	@Override
 	public Result<String> createUser(User user) {
 		return super.toJavaResult(() -> {
-			var res = stub.createUser(CreateUserArgs.newBuilder()
+			var res = stub().createUser(CreateUserArgs.newBuilder()
 				.setUser(User_to_GrpcUser(user))
 				.build());
+			
 			return res.getUserId();
 		});
 	}
@@ -40,7 +46,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	public Result<User> getUser(String userId, String pwd) {
 		return super.toJavaResult(()-> {
 			
-			var res = stub.getUser(GetUserArgs.newBuilder()
+			var res = stub().getUser(GetUserArgs.newBuilder()
 				.setUserId(userId)
 				.setPassword(pwd)
 				.build());
@@ -53,7 +59,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	public Result<User> updateUser(String userId, String pwd, User user) {
 		return super.toJavaResult(() -> {
 			
-			var res = stub.updateUser(UpdateUserArgs.newBuilder()
+			var res = stub().updateUser(UpdateUserArgs.newBuilder()
 				.setUserId(userId)
 				.setPassword(pwd)
 				.setUser(User_to_GrpcUser(user))
@@ -66,7 +72,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	@Override
 	public Result<User> deleteUser(String userId, String pwd) {
 		return super.toJavaResult(() -> {
-			var res = stub.deleteUser(DeleteUserArgs.newBuilder()
+			var res = stub().deleteUser(DeleteUserArgs.newBuilder()
 					.setUserId(userId)
 					.setPassword(pwd)
 					.build());
@@ -77,7 +83,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
 		return super.toJavaResult(() -> {
-			var res = stub.searchUsers(SearchUserArgs.newBuilder()
+			var res = stub().searchUsers(SearchUserArgs.newBuilder()
 				.setPattern(pattern)
 				.build());
 

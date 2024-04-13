@@ -8,8 +8,8 @@ import java.util.concurrent.TimeUnit;
 import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedShorts;
-import tukano.impl.grpc.generated_java.ExtendedShortsGrpc;
-import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsArgs;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs;
+import tukano.impl.grpc.generated_java.ShortsGrpc;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowArgs;
@@ -22,17 +22,21 @@ import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesArgs;
 
 public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
-	final ExtendedShortsGrpc.ExtendedShortsBlockingStub stub;
+	final ShortsGrpc.ShortsBlockingStub _stub;
 
 	public GrpcShortsClient(String serverURI) {
 		super(serverURI);
-		stub = ExtendedShortsGrpc.newBlockingStub( super.channel )
-				.withDeadlineAfter(GRPC_TIMEOUT, TimeUnit.MILLISECONDS);
+		_stub = ShortsGrpc.newBlockingStub( super.channel );
+		
 	}
 
+	private ShortsGrpc.ShortsBlockingStub stub() {
+		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+	}
+	
 	public Result<Short> _createShort(String userId, String password) {
 		return super.toJavaResult(() -> {
-			var res = stub.createShort(CreateShortArgs.newBuilder()
+			var res = stub().createShort(CreateShortArgs.newBuilder()
 					.setUserId( userId )
 					.setPassword( password )
 					.build());
@@ -42,7 +46,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<Void> _deleteShort(String shortId, String password) {
 		return super.toJavaResult(() -> {
-			stub.deleteShort(DeleteShortArgs.newBuilder()
+			stub().deleteShort(DeleteShortArgs.newBuilder()
 					.setShortId(shortId)
 					.setPassword( password )
 					.build());
@@ -51,7 +55,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<Short> _getShort(String shortId) {
 		return super.toJavaResult(() -> {
-			var res = stub.getShort(GetShortArgs.newBuilder()
+			var res = stub().getShort(GetShortArgs.newBuilder()
 					.setShortId( shortId )
 					.build());
 			return GrpcShort_to_Short(res.getValue() );
@@ -60,7 +64,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<List<String>> _getShorts(String userId) {
 		return super.toJavaResult(() -> {
-			var res = stub.getShorts(GetShortsArgs.newBuilder()
+			var res = stub().getShorts(GetShortsArgs.newBuilder()
 					.setUserId( userId )
 					.build());
 			
@@ -70,7 +74,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<Void> _follow(String userId1, String userId2, boolean isFollowing, String password) {
 		return super.toJavaResult(() -> {
-			stub.follow(FollowArgs.newBuilder()
+			stub().follow(FollowArgs.newBuilder()
 					.setUserId1( userId1 )
 					.setUserId2( userId2)
 					.setIsFollowing( isFollowing )
@@ -81,7 +85,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<List<String>> _followers(String userId, String password) {
 		return super.toJavaResult(() -> {
-			var res = stub.followers(FollowersArgs.newBuilder()
+			var res = stub().followers(FollowersArgs.newBuilder()
 					.setUserId( userId )
 					.setPassword( password )
 					.build());
@@ -92,7 +96,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<Void> _like(String shortId, String userId, boolean isLiked, String password) {
 		return super.toJavaResult(() -> {
-			stub.like(LikeArgs.newBuilder()
+			stub().like(LikeArgs.newBuilder()
 					.setShortId( shortId )
 					.setUserId( userId )
 					.setIsLiked( isLiked )
@@ -103,7 +107,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<List<String>> _likes(String shortId, String password) {
 		return super.toJavaResult(() -> {
-			var res = stub.likes(LikesArgs.newBuilder()
+			var res = stub().likes(LikesArgs.newBuilder()
 					.setShortId( shortId )
 					.setPassword( password )
 					.build());
@@ -114,7 +118,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<List<String>> _getFeed(String userId, String password) {
 		return super.toJavaResult(() -> {
-			var res = stub.getFeed(GetFeedArgs.newBuilder()
+			var res = stub().getFeed(GetFeedArgs.newBuilder()
 					.setUserId( userId )
 					.setPassword( password )
 					.build());
@@ -125,7 +129,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 
 	public Result<Void> _deleteAllShorts(String userId, String password) {
 		return super.toJavaResult(() -> {
-			stub.deleteAllShorts( 
+			stub().deleteAllShorts( 
 					DeleteAllShortsArgs.newBuilder()
 					.setUserId(password)
 					.setPassword(password)

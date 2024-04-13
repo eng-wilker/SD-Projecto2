@@ -32,7 +32,7 @@ public class GrpcClient {
 		this.server = URI.create(serverURI);
 		this.channel = ManagedChannelBuilder.forAddress(server.getHost(), server.getPort()).usePlaintext().build();
 	}
-	
+		
 	protected <T> Result<T> reTry(Supplier<Result<T>> func) {
 		for (int i = 0; i < MAX_RETRIES; i++)
 			try {

@@ -1,26 +1,19 @@
 
 syntax = "proto3";
 
-import "src/tukano/api/grpc/Blobs.proto";
-
-
 option java_package = "tukano.impl.grpc.generated_java";
-option java_outer_classname = "ExtendedBlobsProtoBuf";
+option java_outer_classname = "ExtendedBlobsProtoBufX";
 
 
-service ExtendedBlobs {
-
-	rpc upload( UploadArgs ) returns (UploadResult) {}
-
-	rpc download( DownloadArgs ) returns (stream DownloadResult) {}
+service ExtendedBlobsX {
 	
-	rpc deleteAllBlobs( DeleteAllBlobsArgs ) returns (DeleteAllBlobsResult) {}
+	rpc deleteAllBlobs( DeleteAllBlobsArgsX ) returns (DeleteAllBlobsResultX) {}
 	
 }
 
-message DeleteAllBlobsArgs {
+message DeleteAllBlobsArgsX {
 	 string userId = 1;
 }
 
-message DeleteAllBlobsResult {
+message DeleteAllBlobsResultX {
 }

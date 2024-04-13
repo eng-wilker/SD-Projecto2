@@ -10,22 +10,25 @@ import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.DownloadArgs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
-import tukano.impl.grpc.generated_java.ExtendedBlobsGrpc;
-import tukano.impl.grpc.generated_java.ExtendedBlobsProtoBuf.DeleteAllBlobsArgs;
+import tukano.impl.grpc.generated_java.BlobsGrpc;
+import tukano.impl.grpc.generated_java.ShortsGrpc;
 
 public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
-	final ExtendedBlobsGrpc.ExtendedBlobsBlockingStub stub;
+	final BlobsGrpc.BlobsBlockingStub _stub;
 
 	public GrpcBlobsClient(String serverURI) {
 		super(serverURI);
-		stub = ExtendedBlobsGrpc.newBlockingStub( super.channel )
-				.withDeadlineAfter(GRPC_TIMEOUT, TimeUnit.MILLISECONDS);
+		_stub = BlobsGrpc.newBlockingStub( super.channel );
 	}
 
+	private BlobsGrpc.BlobsBlockingStub stub() {
+		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+	}
+	
 	private Result<Void> _upload(String blobId, byte[] bytes) {
 		return super.toJavaResult(() -> {
-			stub.upload( UploadArgs.newBuilder()
+			stub().upload( UploadArgs.newBuilder()
 				.setData( ByteString.copyFrom(bytes))
 				.build());
 
@@ -34,7 +37,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	private Result<byte[]> _download(String blobId) {
 		return super.toJavaResult(() -> {
-			var res = stub.download( DownloadArgs.newBuilder()
+			var res = stub().download( DownloadArgs.newBuilder()
 				.setBlobId(blobId)
 				.build());			
 			var baos = new ByteArrayOutputStream();
@@ -45,7 +48,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 
 	private Result<Void> _downloadToSink(String blobId, Consumer<byte[]> sink) {
 		return super.toJavaResult(() -> {
-			var res = stub.download( DownloadArgs.newBuilder()
+			var res = stub().download( DownloadArgs.newBuilder()
 				.setBlobId(blobId)
 				.build());
 			
@@ -54,11 +57,13 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 	}
 	
 	private Result<Void> _deleteAllBlobs(String userId) {
-		return super.toJavaResult(() -> {
-			stub.deleteAllBlobs( DeleteAllBlobsArgs.newBuilder()
-				.setUserId(userId)
-				.build());			
-		});	}
+//		return super.toJavaResult(() -> {
+//			stub.deleteAllBlobs( DeleteAllBlobsArgs.newBuilder()
+//				.setUserId(userId)
+//				.build());			
+//		});	
+		return null;
+	}
 	
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {

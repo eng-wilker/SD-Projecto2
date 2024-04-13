@@ -5,6 +5,7 @@ import static tukano.impl.grpc.common.DataModelAdaptor.Short_to_GrpcShort;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.StreamObserver;
 import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.grpc.generated_java.ShortsGrpc;
 import tukano.impl.grpc.generated_java.ExtendedShortsGrpc;
 import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsArgs;
 import tukano.impl.grpc.generated_java.ExtendedShortsProtoBuf.DeleteAllShortsResult;
@@ -28,13 +29,13 @@ import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.LikesResult;
 import tukano.impl.java.servers.JavaShorts;
 
-public class GrpcShortsServerStub extends AbstractGrpcStub implements ExtendedShortsGrpc.AsyncService {
+public class GrpcShortsServerStub extends AbstractGrpcStub implements ShortsGrpc.AsyncService {
 
 	final ExtendedShorts impl = new JavaShorts();
 	
 	@Override
 	public final ServerServiceDefinition bindService() {
-		return ExtendedShortsGrpc.bindService(this);
+		return ShortsGrpc.bindService(this);
 	}
 
 	@Override
@@ -137,14 +138,36 @@ public class GrpcShortsServerStub extends AbstractGrpcStub implements ExtendedSh
 	}
 	
 	
-	@Override
-	public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
-		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
-		if( ! res.isOK() )
-			responseObserver.onError( errorCodeToStatus(res.error()) );
-		else {
-			responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
-			responseObserver.onCompleted();
-		}
-    }
+//	@Override
+//	public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
+//		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
+//		if( ! res.isOK() )
+//			responseObserver.onError( errorCodeToStatus(res.error()) );
+//		else {
+//			responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
+//			responseObserver.onCompleted();
+//		}
+//    }
+	
+//	static class ExtendedGrpcShortsServerStub extends AbstractGrpcStub implements ExtendedShortsGrpc.AsyncService {
+//
+//		@Override
+//		public ServerServiceDefinition bindService() {
+//			return ExtendedShortsGrpc.bindService(this);
+//		}
+//		
+//		
+//		@Override
+//		public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
+//			var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
+//			if( ! res.isOK() )
+//				responseObserver.onError( errorCodeToStatus(res.error()) );
+//			else {
+//				responseObserver.onNext( DeleteAllShortsResult.newBuilder().build());
+//				responseObserver.onCompleted();
+//			}
+//	    }
+//
+//	}
+
 }

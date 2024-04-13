@@ -111,7 +111,6 @@ public class JavaShorts implements ExtendedShorts {
 			return error( ures.error() );
 		
 		shortsCache.invalidate( shortId );
-		
 		return Hibernate.getInstance().deleteOne( shrt );
 	}
 
