@@ -58,6 +58,8 @@ public class JavaUsers implements Users {
 
 		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);
+		if (other.getUserId() != null && ! other.getUserId().equals(userId))
+			return error(BAD_REQUEST);
 
 		var ures = Hibernate.getInstance().getOne(userId, User.class);
 		if( ! ures.isOK() )
