@@ -9,7 +9,10 @@ service Blobs {
 
 	rpc download( DownloadArgs ) returns (stream DownloadResult) {}
 	
+	rpc deleteAllBlobs( DeleteAllBlobsArgs ) returns (DeleteAllBlobsResult) {}
+
 }
+
 
 message UploadArgs {
 	 string blobId = 1;
@@ -25,4 +28,11 @@ message DownloadArgs {
 
 message DownloadResult {
 	bytes chunk = 1;
+}
+
+message DeleteAllBlobsArgs {
+	 string userId = 1;
+}
+
+message DeleteAllBlobsResult {
 }

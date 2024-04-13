@@ -5,6 +5,9 @@ import java.net.URI;
 
 import tukano.api.User;
 import tukano.api.java.Result;
+import tukano.impl.grpc.servers.GrpcBlobsServer;
+import tukano.impl.grpc.servers.GrpcShortsServer;
+import tukano.impl.grpc.servers.GrpcUsersServer;
 import tukano.impl.java.clients.Clients;
 import tukano.impl.rest.servers.RestBlobsServer;
 import tukano.impl.rest.servers.RestShortsServer;
@@ -19,22 +22,22 @@ public class Main {
 	
 	public static void main(String[] args ) throws Exception {
 		new Thread( () -> {	
-			RestUsersServer.main( new String[] {} );
+			GrpcUsersServer.main( new String[] {} );
 		} ).start();		
 		new Thread( () -> {	
-			RestShortsServer.main( new String[] {} );
+			GrpcShortsServer.main( new String[] {} );
 		} ).start();
 		new Thread( () -> {	
-			RestBlobsServer.main( new String[] {"-port", "9001"} );
+			GrpcBlobsServer.main( new String[] {"-port", "9001"} );
 		} ).start();
 		new Thread( () -> {	
-			RestBlobsServer.main( new String[] {"-port", "9002"} );
+			GrpcBlobsServer.main( new String[] {"-port", "9002"} );
 		} ).start();
 		new Thread( () -> {	
-			RestBlobsServer.main( new String[] {"-port", "9003"} );
+			GrpcBlobsServer.main( new String[] {"-port", "9003"} );
 		} ).start();
 
-		Thread.sleep(5000);
+		Thread.sleep(1000);
 		
 		var users = Clients.UsersClients.get();
 		var shorts = Clients.ShortsClients.get();
@@ -63,10 +66,10 @@ public class Main {
 		
 		
 		var blobUrl = URI.create(s2.value().getBlobUrl());
-		System.out.println( blobUrl );
+		System.out.println( "------->" + blobUrl );
 		
 		var blobId = new File( blobUrl.getPath() ).getName();
-		System.out.println( blobId );
+		System.out.println( "BlobID:" + blobId );
 		
 		blobs.forEach( b -> b.upload(blobId, new byte[1024]));
 

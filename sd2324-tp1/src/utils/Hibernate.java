@@ -3,7 +3,6 @@ package utils;
 import java.io.File;
 import java.util.List;
 
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
 import org.hibernate.cfg.Configuration;
@@ -50,36 +49,58 @@ public class Hibernate {
 	 * Persists one or more objects to storage
 	 * @param objects - the objects to persist
 	 */ 
-	public Result<Void> persist(Object... objects) {		
-		return execute( (session) -> {
-			for( var o : objects )
+	public Result<Void> persist(Object... objects) {
+		Transaction tx = null;
+		try(var session = sessionFactory.openSession()) {
+		     tx = session.beginTransaction();
+		     for( var o : objects )
 		    	 session.persist(o);
-			return Result.ok();
-		});    
+		     tx.commit();
+		     return Result.ok();
+		} catch( ConstraintViolationException __) {
+			return Result.error( ErrorCode.CONFLICT );
+		} catch (Exception e) {
+		     if (tx!=null) tx.rollback();
+		     throw e;
+		}
 	}
-	
+
 	/**
 	 * Updates one or more objects previously persisted.
 	 * @param objects - the objects to update
 	 */
 	public Result<Void> update(Object... objects) {
-		return execute( (session) -> {
-			for( var o : objects )
-		    	 session.merge(o);
-			return Result.ok();
-		}); 
+		Transaction tx = null;
+		try(var session = sessionFactory.openSession()) {
+		     tx = session.beginTransaction();
+		     for( var o : objects )
+		    	 if( session.merge(o) != null ) {
+		    		 tx.rollback();
+		    		 return Result.error( ErrorCode.NOT_FOUND );
+		    	 }
+		     tx.commit();
+		     return Result.ok();
+		} catch (Exception e) {
+		     if (tx!=null) tx.rollback();
+		     throw e;
+		}
 	}
 	
 	/**
 	 * Removes one or more objects from storage 
 	 * @param objects - the objects to remove from storage
 	 */
-	public Result<Void> delete(Object... objects) {
-		return execute( (session) -> {
-			for( var o : objects )
+	public void delete(Object... objects) {
+		Transaction tx = null;
+		try(var session = sessionFactory.openSession()) {
+		     tx = session.beginTransaction();
+		     for( var o : objects )
 		    	 session.remove(o);
-			return Result.ok();
-		}); 
+		     tx.commit();			
+		} catch (Exception e) {
+		     if (tx!=null) tx.rollback();
+		     throw e;
+		}
 	}
 	
 	/**
@@ -156,25 +177,5 @@ public class Hibernate {
 		} catch (Exception e) {
 		    throw e;
 		}
-	}
-	
-	public <T> Result<T> execute( TransactionWork<T> ops) {
-		Transaction tx = null;
-		try(var session = sessionFactory.openSession()) {
-			tx = session.beginTransaction();
-			ops.executeTransaction(session);
-			session.flush();
-			tx.commit();	
-			return Result.ok();
-		} catch( ConstraintViolationException __) {
-			return Result.error( ErrorCode.CONFLICT );
-		} catch (Exception e) {
-		     if (tx!=null) tx.rollback();
-		     throw e;
-		}
-	}
-	
-	public static interface TransactionWork<T> {
-		public Result<T> executeTransaction( Session s );
 	}
 }

@@ -16,19 +16,27 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.java.clients.Clients;
 import utils.Hash;
+import utils.Hex;
 import utils.IO;
 
 public class JavaBlobs implements ExtendedBlobs {
+	private static final String BLOB_ROOT = "/tmp/";
+	
+	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
 	private static final int CHUNK_SIZE = 4096;
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
+		Log.info(String.format("upload : userId = %s, sha256 = %s", blobId, Hex.of(Hash.sha256(bytes))));
+
+		
 		if (!validBlobId(blobId))
 			return error(FORBIDDEN);
 
@@ -80,8 +88,23 @@ public class JavaBlobs implements ExtendedBlobs {
 		}
 	}
 
+	
+	@Override
+	public Result<Void> deleteAllBlobs(String userId) {
+		try {
+			var path = new File(userId);
+			Files.walk(path.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+			return ok();
+		} catch (IOException e) {
+			e.printStackTrace();
+			return error(INTERNAL_ERROR);
+		}
+	}
+	
 	private boolean validBlobId(String blobId) {
+		System.out.println("------>>>>>" + blobId );
 		var res = Clients.ShortsClients.get().getShort(blobId);
+		System.err.println( res );
 		return res.isOK();
 	}
 
@@ -90,19 +113,12 @@ public class JavaBlobs implements ExtendedBlobs {
 		if (parts.length != 2)
 			return null;
 
-		var res = new File(parts[0] + "/" + parts[1]);
+		var res = new File(BLOB_ROOT + parts[0] + "/" + parts[1]);
 		res.getParentFile().mkdirs();
 
 		return res;
 
 	}
 
-	@Override
-	public void deleteAllBlobs(String userId) {
-		try {
-			var path = new File(userId);
-			Files.walk(path.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
-		} catch (IOException e) {
-		}
-	}
+	
 }

@@ -1,5 +1,6 @@
 package tukano.impl.grpc.servers;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 
 import tukano.api.java.Users;
@@ -13,7 +14,11 @@ public static final int PORT = 13456;
 		super( Log, Users.NAME, PORT, new GrpcUsersServerStub());
 	}
 	
-	public static void main(String[] args) throws Exception {
-		new GrpcUsersServer().start();
+	public static void main(String[] args) {
+		try {
+			new GrpcUsersServer().start();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}	
 }

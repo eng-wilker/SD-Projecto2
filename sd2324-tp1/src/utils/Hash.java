@@ -3,18 +3,10 @@ package utils;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-import com.google.common.hash.HashFunction;
-import com.google.common.hash.Hashing;
-
 public class Hash {
-		static HashFunction hf = Hashing.murmur3_32();
 		static MessageDigest md5;
 		static MessageDigest sha256;
-		
-		public static int of(String str) {
-			return hf.hashBytes( str.getBytes() ).asInt();
-		}
-		
+				
 		public static byte[] md5( byte[] data ) {
 			if (md5 == null) {
 				try {
