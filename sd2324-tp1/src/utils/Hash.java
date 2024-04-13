@@ -16,7 +16,7 @@ public class Hash {
 				}
 			}
 			md5.reset();
-			md5.update( data);
+			md5.update( data == null ? new byte[0] : data );
 			return md5.digest();
 		}
 		
@@ -29,7 +29,7 @@ public class Hash {
 				}
 			}
 			sha256.reset();
-			sha256.update( data);
+			sha256.update( data == null ? new byte[0] : data );
 			return sha256.digest();
 		}
 }
