@@ -95,6 +95,7 @@ public class GrpcShortsServerStub extends AbstractGrpcStub implements ShortsGrpc
 	@Override
 	public void followers(FollowersArgs request, StreamObserver<FollowersResult> responseObserver) {
 		var res = impl.followers( request.getUserId(), request.getPassword() );
+		System.err.println(res.value() );
 		if( ! res.isOK() )
 			responseObserver.onError( errorCodeToStatus(res.error()) );
 		else {

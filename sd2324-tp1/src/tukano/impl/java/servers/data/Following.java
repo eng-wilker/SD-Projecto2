@@ -54,4 +54,11 @@ public class Following{
 		Following other = (Following) obj;
 		return Objects.equals(followee, other.followee) && Objects.equals(follower, other.follower);
 	}
+
+	@Override
+	public String toString() {
+		return "Following [follower=" + follower + ", followee=" + followee + "]";
+	}
+	
+	
 }

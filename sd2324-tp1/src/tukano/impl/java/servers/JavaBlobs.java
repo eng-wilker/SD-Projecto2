@@ -26,7 +26,7 @@ import utils.Hex;
 import utils.IO;
 
 public class JavaBlobs implements ExtendedBlobs {
-	private static final String BLOB_ROOT = "/tmp/";
+	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
 	
 	private static Logger Log = Logger.getLogger(JavaBlobs.class.getName());
 
@@ -34,7 +34,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info(String.format("upload : userId = %s, sha256 = %s", blobId, Hex.of(Hash.sha256(bytes))));
+		Log.info(String.format("upload : blobId = %s, sha256 = %s", blobId, Hex.of(Hash.sha256(bytes))));
 
 		
 		if (!validBlobId(blobId))
@@ -57,6 +57,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<byte[]> download(String blobId) {
+		Log.info(String.format("download : blobId = %s, sha256 = %s", blobId, Hex.of(Hash.sha256(IO.read( toFilePath(blobId))))));
 
 		var file = toFilePath(blobId);
 		if (file == null)
@@ -92,7 +93,7 @@ public class JavaBlobs implements ExtendedBlobs {
 	@Override
 	public Result<Void> deleteAllBlobs(String userId) {
 		try {
-			var path = new File(userId);
+			var path = new File(BLOBS_ROOT_DIR + userId );
 			Files.walk(path.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
 			return ok();
 		} catch (IOException e) {
@@ -102,9 +103,7 @@ public class JavaBlobs implements ExtendedBlobs {
 	}
 	
 	private boolean validBlobId(String blobId) {
-		System.out.println("------>>>>>" + blobId );
 		var res = Clients.ShortsClients.get().getShort(blobId);
-		System.err.println( res );
 		return res.isOK();
 	}
 
@@ -113,7 +112,7 @@ public class JavaBlobs implements ExtendedBlobs {
 		if (parts.length != 2)
 			return null;
 
-		var res = new File(BLOB_ROOT + parts[0] + "/" + parts[1]);
+		var res = new File(BLOBS_ROOT_DIR + parts[0] + "/" + parts[1]);
 		res.getParentFile().mkdirs();
 
 		return res;

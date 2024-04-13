@@ -10,6 +10,8 @@ import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.*;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
+import utils.Hash;
+import utils.Hex;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
 
 public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
@@ -41,7 +43,9 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 				.setBlobId(blobId)
 				.build());			
 			var baos = new ByteArrayOutputStream();
-			res.forEachRemaining( chunk -> baos.writeBytes( chunk.toByteArray() ));
+			res.forEachRemaining( part -> {
+				baos.writeBytes( part.getChunk().toByteArray() );
+			});
 			return baos.toByteArray();
 		});
 	}
@@ -52,7 +56,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 				.setBlobId(blobId)
 				.build());
 			
-			res.forEachRemaining( (chunk) -> sink.accept( chunk.getChunk().toByteArray()));	
+			res.forEachRemaining( (part) -> sink.accept( part.getChunk().toByteArray()));	
 		});
 	}
 	

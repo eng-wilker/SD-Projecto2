@@ -23,9 +23,7 @@ public class GrpcBlobsServerStub extends AbstractGrpcStub implements BlobsGrpc.A
 
 	//@Override
 	public void upload(UploadArgs request, StreamObserver<UploadResult> responseObserver) {
-		System.err.println( request );
 		var res = impl.upload(request.getBlobId(), request.getData().toByteArray());
-		System.err.println( res );
 		if (!res.isOK())
 			responseObserver.onError(errorCodeToStatus(res.error()));
 		else {

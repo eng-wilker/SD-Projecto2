@@ -2,6 +2,8 @@ package main;
 
 import java.io.File;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Random;
 
 import tukano.api.User;
 import tukano.api.java.Result;
@@ -9,9 +11,8 @@ import tukano.impl.grpc.servers.GrpcBlobsServer;
 import tukano.impl.grpc.servers.GrpcShortsServer;
 import tukano.impl.grpc.servers.GrpcUsersServer;
 import tukano.impl.java.clients.Clients;
-import tukano.impl.rest.servers.RestBlobsServer;
-import tukano.impl.rest.servers.RestShortsServer;
-import tukano.impl.rest.servers.RestUsersServer;
+import utils.Hash;
+import utils.Hex;
 
 public class Main {
 	
@@ -31,10 +32,10 @@ public class Main {
 			GrpcBlobsServer.main( new String[] {"-port", "9001"} );
 		} ).start();
 		new Thread( () -> {	
-			GrpcBlobsServer.main( new String[] {"-port", "9002"} );
+//			GrpcBlobsServer.main( new String[] {"-port", "9002"} );
 		} ).start();
 		new Thread( () -> {	
-			GrpcBlobsServer.main( new String[] {"-port", "9003"} );
+//			GrpcBlobsServer.main( new String[] {"-port", "9003"} );
 		} ).start();
 
 		Thread.sleep(1000);
@@ -71,7 +72,9 @@ public class Main {
 		var blobId = new File( blobUrl.getPath() ).getName();
 		System.out.println( "BlobID:" + blobId );
 		
-		blobs.forEach( b -> b.upload(blobId, new byte[1024]));
+		var bytes = randomBytes( 1 );
+		
+		blobs.forEach( b -> b.upload(blobId, bytes));
 
 		
 		var s2id = s2.value().getShortId();
@@ -98,7 +101,7 @@ public class Main {
 		
 		blobs.forEach( b -> {
 			var r = b.download(blobId);
-			System.out.println( r.value().length );
+			System.out.println( Hex.of(Hash.sha256( bytes )) + "-->" + Hex.of(Hash.sha256( r.value() )));
 			
 		});
 		System.exit(0);
@@ -111,6 +114,17 @@ public class Main {
 		else
 			System.err.println("ERROR:" + res.error());
 		return res;
+		
+	}
+	
+	private static byte[] randomBytes(int size) {
+		var r = new Random(1L);
+
+		var bb = ByteBuffer.allocate(size);
+		
+		r.ints(size).forEach( i -> bb.put( (byte)(i & 0xFF)));		
+
+		return bb.array();
 		
 	}
 }

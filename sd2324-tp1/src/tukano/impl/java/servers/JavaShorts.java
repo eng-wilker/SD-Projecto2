@@ -77,7 +77,7 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Short> createShort(String userId, String password) {
-		Log.info(String.format("createShort : userId = %s, pwd = %s", userId, password));
+		Log.info(String.format("createShort : userId = %s, pwd = %s\n", userId, password));
 
 		var ures = getUser(userId, password);
 		if( ! ures.isOK() )
@@ -99,6 +99,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Short> getShort(String shortId) {
+		Log.info(String.format("getShort : shortId = %s\n", shortId));
+
 		if( shortId == null )
 			return error(BAD_REQUEST);
 
@@ -108,6 +110,8 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
+		Log.info(String.format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
+		
 		var sres = getShort( shortId );
 		if( ! sres.isOK() )
 			return error( sres.error() );
@@ -124,6 +128,9 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<List<String>> getShorts(String userId) {
+		Log.info(String.format("getShorts : userId = %s\n", userId));
+
+		
 		final var QUERY_FMT = "SELECT s.shortId FROM Short s WHERE s.ownerId = '%s'";		
 		var query = String.format(QUERY_FMT, userId);
 		var hits = Hibernate.getInstance().sql(query, String.class);
@@ -132,6 +139,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> follow(String userId1, String userId2, boolean isFollowing, String password) {
+		Log.info(String.format("follow : userId1 = %s, userId2 = %s, isFollowing = %s, pwd = %s\n", userId1, userId2, isFollowing, password));
+	
 		var ures1 = getUser( userId1, password );
 		if( ! ures1.isOK() )
 			return error( ures1.error() );
@@ -149,10 +158,14 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> followers(String userId, String password) {
+		Log.info(String.format("followers : userId = %s, pwd = %s\n", userId, password));
+
 		var ures = getUser( userId, password );
 		if( ! ures.isOK() )
 			return error( ures.error() );
 
+		Hibernate.getInstance().sql("SELECT * FROM Following", Following.class).forEach( System.out::println );
+		
 		final var QUERY_FMT = "SELECT f.follower FROM Following f WHERE f.followee = '%s'";		
 		var query = String.format(QUERY_FMT, userId);
 		var hits = Hibernate.getInstance().sql(query, String.class);
@@ -161,6 +174,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
+		Log.info(String.format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
+
 		var sres = getShort(shortId);
 		if( ! sres.isOK())
 			return error( sres.error() );
@@ -181,6 +196,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> likes(String shortId, String password) {
+		Log.info(String.format("likes : shortId = %s, pwd = %s\n", shortId, password));
+
 		var sres = getShort(shortId);
 		if( ! sres.isOK())
 			return error( sres.error() );
@@ -198,6 +215,8 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> getFeed(String userId, String password) {
+		Log.info(String.format("getFeed : userId = %s, pwd = %s\n", userId, password));
+
 		var ures = getUser(userId, password);
 		if( ! ures.isOK())
 			return error( ures.error() );
