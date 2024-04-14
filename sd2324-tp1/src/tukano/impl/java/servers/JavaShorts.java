@@ -222,13 +222,21 @@ public class JavaShorts implements ExtendedShorts {
 			return error( ures.error() );
 	
 		final var QUERY_FMT = """				
+				SELECT DISTINCT s.shortId, s.timestamp FROM Short s
+				WHERE 
+					(s.ownerId = '%s') 
+				OR 
+					(s.ownerId IN (SELECT f.followee FROM Following f WHERE f.follower = '%s') )
+				ORDER BY s.timestamp DESC""";
+
+		/*		final var QUERY_FMT = """				
 				SELECT DISTINCT s.shortId, s.timestamp FROM Short s, Following f 
 				WHERE 
 					(s.ownerId = '%s') 
 				OR 
 					(f.followee = s.ownerId AND f.follower = '%s') 
-				ORDER BY s.timestamp""";
-		
+				ORDER BY s.timestamp DESC""";
+*/		
 		var query = String.format(QUERY_FMT, userId, userId);
 		var hits = Hibernate.getInstance().sql(query, String.class);		
 		return ok(hits);
