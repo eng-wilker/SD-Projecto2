@@ -221,13 +221,13 @@ public class JavaShorts implements ExtendedShorts {
 		if( ! ures.isOK())
 			return error( ures.error() );
 	
-		final var QUERY_FMT = """				
-				SELECT DISTINCT s.shortId, s.timestamp FROM Short s, Following f 
-				WHERE 
-					(s.ownerId = '%s') 
-				OR 
-					(f.followee = s.ownerId AND f.follower = '%s') 
-				ORDER BY s.timestamp""";
+		final var QUERY_FMT = """
+				SELECT s.shortId, s.timestamp FROM Short s WHERE	s.ownerId = '%s'				
+				UNION			
+				SELECT s.shortId, s.timestamp FROM Short s, Following f 
+					WHERE 
+						f.followee = s.ownerId AND f.follower = '%s' 
+				ORDER BY s.timestamp DESC""";
 		
 		var query = String.format(QUERY_FMT, userId, userId);
 		var hits = Hibernate.getInstance().sql(query, String.class);		
@@ -284,7 +284,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	static record BlobServerCount(String baseURI, Long count) {};	
 	private String getLeastLoadedBlobServerURI() {		
-		final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(?:http:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
+		final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
 		var hits = Hibernate.getInstance().sql(QUERY, BlobServerCount.class);
 		
 		var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
@@ -292,6 +292,8 @@ public class JavaShorts implements ExtendedShorts {
 		for( var uri : BlobsClients.instances() )
 			 candidates.putIfAbsent( uri.toString(), 0L);
 
+		System.out.println( "--->" + candidates );
+		
 		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
 		
 		return res.isEmpty() ? "???" : res.get().getKey();
