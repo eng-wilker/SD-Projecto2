@@ -292,8 +292,6 @@ public class JavaShorts implements ExtendedShorts {
 		for( var uri : BlobsClients.instances() )
 			 candidates.putIfAbsent( uri.toString(), 0L);
 
-		System.out.println( "--->" + candidates );
-		
 		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
 		
 		return res.isEmpty() ? "???" : res.get().getKey();
