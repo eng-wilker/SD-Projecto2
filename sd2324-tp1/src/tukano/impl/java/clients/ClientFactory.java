@@ -8,7 +8,9 @@ import java.util.function.Function;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.re2j.Pattern;
 
+import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.impl.discovery.Discovery;
 
@@ -60,11 +62,26 @@ public class ClientFactory<T> {
 		}
 	}	
 	
-	public URI[] instances() {
-		return Discovery.getInstance().knownUrisOf(serviceName, 1);		
+	public T get(String url) {
+		try {
+			var regex = Pattern.compile("^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)");
+			var matcher = regex.matcher( url );
+			var uriStr = matcher.find() ? matcher.group() : "???";
+			return clients.get( URI.create( uriStr ) );
+		} catch (Exception x) {
+			x.printStackTrace();
+			throw new RuntimeException( Result.ErrorCode.INTERNAL_ERROR.toString());
+		}
+	}
+	
+	public Collection<String> urls() {
+		return Arrays.asList(Discovery.getInstance().knownUrisOf(serviceName, 1))
+				.stream()
+				.map( uri -> String.format("%s/%s", uri, Blobs.NAME))
+				.toList();
 	}
 	
 	public Collection<T> all() {
-		return Arrays.asList( instances() ).stream().map( this::get ).toList();
+		return Arrays.asList( Discovery.getInstance().knownUrisOf(serviceName, 1) ).stream().map( this::get ).toList();
 	}
 }

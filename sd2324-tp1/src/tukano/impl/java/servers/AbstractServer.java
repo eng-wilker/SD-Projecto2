@@ -3,6 +3,9 @@ package tukano.impl.java.servers;
 import java.io.IOException;
 import java.util.logging.Logger;
 
+import utils.Args;
+import utils.Token;
+
 
 public abstract class AbstractServer {
 	protected static final String INETADDR_ANY = "0.0.0.0";
@@ -15,6 +18,8 @@ public abstract class AbstractServer {
 		this.Log = log;
 		this.service = service;
 		this.serverURI = serverURI;
+		
+		Token.set( Args.valueOf("-token", ""));
 	}
 		
 	abstract protected void start() throws IOException;

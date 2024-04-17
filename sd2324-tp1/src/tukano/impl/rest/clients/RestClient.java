@@ -68,7 +68,6 @@ public class RestClient {
 		try {
 			var status = r.getStatusInfo().toEnum();
 			if (status == Status.OK && r.hasEntity()) {
-				Thread.dumpStack();
 				return ok(null);
 			}
 			else 

@@ -139,7 +139,7 @@ public class GrpcShortsServerStub extends AbstractGrpcStub implements ShortsGrpc
 	
 	@Override
 	public void deleteAllShorts(DeleteAllShortsArgs request, StreamObserver<DeleteAllShortsResult> responseObserver) {
-		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword() );
+		var res = impl.deleteAllShorts( request.getUserId(), request.getPassword(), request.getToken() );
 		if( ! res.isOK() )
 			responseObserver.onError( errorCodeToStatus(res.error()) );
 		else {

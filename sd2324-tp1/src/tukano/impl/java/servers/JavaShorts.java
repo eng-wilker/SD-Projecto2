@@ -1,17 +1,19 @@
 package tukano.impl.java.servers;
 
-
+import static java.lang.String.format;
 import static tukano.api.java.Result.error;
+import static tukano.api.java.Result.errorOrResult;
+import static tukano.api.java.Result.errorOrValue;
+import static tukano.api.java.Result.errorOrVoid;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
+import static tukano.api.java.Result.ErrorCode.*;
 import static tukano.api.java.Result.ErrorCode.FORBIDDEN;
-import static tukano.api.java.Result.ErrorCode.NOT_FOUND;
 import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 import static tukano.impl.java.clients.Clients.BlobsClients;
 import static tukano.impl.java.clients.Clients.UsersClients;
+import static utils.DB.getOne;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
@@ -24,12 +26,13 @@ import com.google.common.cache.LoadingCache;
 
 import tukano.api.Short;
 import tukano.api.User;
+import tukano.api.java.Blobs;
 import tukano.api.java.Result;
-import tukano.api.java.Result.ErrorCode;
 import tukano.impl.api.java.ExtendedShorts;
 import tukano.impl.java.servers.data.Following;
 import tukano.impl.java.servers.data.Likes;
-import utils.Hibernate;
+import utils.DB;
+import utils.Token;
 
 public class JavaShorts implements ExtendedShorts {
 	
@@ -38,6 +41,7 @@ public class JavaShorts implements ExtendedShorts {
 	AtomicLong counter = new AtomicLong( totalShortsInDatabase() );
 	
 	private static final long USER_CACHE_EXPIRATION = 3000;
+	private static final long SHORTS_CACHE_EXPIRATION = 3000;
 
 	static record Credentials(String userId, String pwd) {
 		static Credentials from(String userId, String pwd) {
@@ -58,48 +62,34 @@ public class JavaShorts implements ExtendedShorts {
 			});
 	
 	protected final LoadingCache<String, Result<Short>> shortsCache = CacheBuilder.newBuilder()
-			.expireAfterWrite(Duration.ofMillis(USER_CACHE_EXPIRATION)).removalListener((e) -> {
+			.expireAfterWrite(Duration.ofMillis(SHORTS_CACHE_EXPIRATION)).removalListener((e) -> {
 			}).build(new CacheLoader<>() {
 				@Override
 				public Result<Short> load(String shortId) throws Exception {
 					
-					final var QUERY_FMT = "SELECT count(*) FROM Likes l WHERE l.shortId = '%s'";		
-					var query = String.format(QUERY_FMT, shortId);
-					var likes = Hibernate.getInstance().sql(query, Long.class);
-					
-					var shrt = Hibernate.getInstance().getOne(shortId, Short.class);
-					if( ! shrt.isOK() )
-						return error( shrt.error() );					
-					return ok( shrt.value().copyWith( likes.get(0) ) );
+					var query = format("SELECT count(*) FROM Likes l WHERE l.shortId = '%s'", shortId);
+					var likes = DB.sql(query, Long.class);
+					return errorOrValue( getOne(shortId, Short.class), shrt -> shrt.copyWith( likes.get(0) ) );
 				}
 			});
 	
-	
 	@Override
 	public Result<Short> createShort(String userId, String password) {
-		Log.info(String.format("createShort : userId = %s, pwd = %s\n", userId, password));
+		Log.info(format("createShort : userId = %s, pwd = %s\n", userId, password));
 
-		var ures = getUser(userId, password);
-		if( ! ures.isOK() )
-			return error( ures.error() );
+		return errorOrResult( okUser(userId, password), user -> {
 			
-		var shortId = String.format("%s-%d", userId, counter.incrementAndGet());
-		var blobUrl = String.format("%s/%s", getLeastLoadedBlobServerURI(), shortId); 
-		var shrt = new Short(shortId, userId, blobUrl);
+			var shortId = format("%s-%d", userId, counter.incrementAndGet());
+			var blobUrl = format("%s/%s/%s", getLeastLoadedBlobServerURI(), Blobs.NAME, shortId); 
+			var shrt = new Short(shortId, userId, blobUrl);
 
-		var res = Hibernate.getInstance().persist( shrt );
-
-		if( res.isOK() )
-			return ok( shrt );
-		else
-			return error( res.error() );
+			return DB.insertOne(shrt);
+		});
 	}
-
-	
 
 	@Override
 	public Result<Short> getShort(String shortId) {
-		Log.info(String.format("getShort : shortId = %s\n", shortId));
+		Log.info(format("getShort : shortId = %s\n", shortId));
 
 		if( shortId == null )
 			return error(BAD_REQUEST);
@@ -110,117 +100,81 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
-		Log.info(String.format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
+		Log.info(format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
 		
-		var sres = getShort( shortId );
-		if( ! sres.isOK() )
-			return error( sres.error() );
-		
-		var shrt = sres.value();
-		var ures = getUser( shrt.getOwnerId(), password);
-		if( ! ures.isOK() )
-			return error( ures.error() );
-		
-		shortsCache.invalidate( shortId );
-		return Hibernate.getInstance().deleteOne( shrt );
+		return errorOrResult( getShort(shortId), shrt -> {
+			
+			return errorOrResult( okUser( shrt.getOwnerId(), password), user -> {
+				return DB.transaction( hibernate -> {
+
+					shortsCache.invalidate( shortId );
+					hibernate.remove( shrt);
+					
+					var query = format("SELECT * FROM Likes l WHERE l.shortId = '%s'", shortId);
+					hibernate.createNativeQuery( query, Likes.class).list().forEach( hibernate::remove);
+					
+					BlobsClients.get( shrt.getBlobUrl() ).deleteUrl(shrt.getBlobUrl(), Token.get() );
+				});
+			});	
+		});
 	}
 
-	
 	@Override
 	public Result<List<String>> getShorts(String userId) {
-		Log.info(String.format("getShorts : userId = %s\n", userId));
+		Log.info(format("getShorts : userId = %s\n", userId));
 
-		
-		final var QUERY_FMT = "SELECT s.shortId FROM Short s WHERE s.ownerId = '%s'";		
-		var query = String.format(QUERY_FMT, userId);
-		var hits = Hibernate.getInstance().sql(query, String.class);
-		return ok(hits);
+		var query = format("SELECT s.shortId FROM Short s WHERE s.ownerId = '%s'", userId);
+		return errorOrValue( okUser(userId), DB.sql( query, String.class));
 	}
 
 	@Override
 	public Result<Void> follow(String userId1, String userId2, boolean isFollowing, String password) {
-		Log.info(String.format("follow : userId1 = %s, userId2 = %s, isFollowing = %s, pwd = %s\n", userId1, userId2, isFollowing, password));
+		Log.info(format("follow : userId1 = %s, userId2 = %s, isFollowing = %s, pwd = %s\n", userId1, userId2, isFollowing, password));
 	
-		var ures1 = getUser( userId1, password );
-		if( ! ures1.isOK() )
-			return error( ures1.error() );
 		
-		var ures2 = getUser( userId1, "?" );
-		if( ures2.error() != FORBIDDEN )
-			return error( NOT_FOUND );
-		
-		if( isFollowing )
-			return Hibernate.getInstance().persist( new Following(userId1, userId2) );
-		else
-			return Hibernate.getInstance().deleteOne(new Following(userId1, userId2) );
-			
+		return errorOrResult( okUser(userId1, password), user -> {
+			var f = new Following(userId1, userId2);
+			return errorOrVoid( okUser( userId2), isFollowing ? DB.insertOne( f ) : DB.deleteOne( f ));	
+		});			
 	}
 
 	@Override
 	public Result<List<String>> followers(String userId, String password) {
-		Log.info(String.format("followers : userId = %s, pwd = %s\n", userId, password));
+		Log.info(format("followers : userId = %s, pwd = %s\n", userId, password));
 
-		var ures = getUser( userId, password );
-		if( ! ures.isOK() )
-			return error( ures.error() );
-
-		Hibernate.getInstance().sql("SELECT * FROM Following", Following.class).forEach( System.out::println );
-		
-		final var QUERY_FMT = "SELECT f.follower FROM Following f WHERE f.followee = '%s'";		
-		var query = String.format(QUERY_FMT, userId);
-		var hits = Hibernate.getInstance().sql(query, String.class);
-		return ok(hits);
+		var query = format("SELECT f.follower FROM Following f WHERE f.followee = '%s'", userId);		
+		return errorOrValue( okUser(userId, password), DB.sql(query, String.class));
 	}
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
-		Log.info(String.format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
+		Log.info(format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
 
-		var sres = getShort(shortId);
-		if( ! sres.isOK())
-			return error( sres.error() );
 		
-		var ures = getUser(userId, password);
-		if( ! ures.isOK())
-			return error( ures.error() );
-		
-		shortsCache.invalidate( shortId );
-		var ownerId = sres.value().getOwnerId();
-		
-		if( isLiked )
-			return Hibernate.getInstance().persist( new Likes(userId, shortId, ownerId) );
-		else 
-			return Hibernate.getInstance().deleteOne(new Likes(userId, shortId, ownerId) );
-		
+		return errorOrResult( getShort(shortId), shrt -> {
+			shortsCache.invalidate( shortId );
+			
+			var l = new Likes(userId, shortId, shrt.getOwnerId());
+			return errorOrVoid( okUser( userId, password), isLiked ? DB.insertOne( l ) : DB.deleteOne( l ));	
+		});
 	}
 
 	@Override
 	public Result<List<String>> likes(String shortId, String password) {
-		Log.info(String.format("likes : shortId = %s, pwd = %s\n", shortId, password));
+		Log.info(format("likes : shortId = %s, pwd = %s\n", shortId, password));
 
-		var sres = getShort(shortId);
-		if( ! sres.isOK())
-			return error( sres.error() );
-
-		var shrt = sres.value();
-		var ures = getUser( shrt.getOwnerId(), password );
-		if( ! ures.isOK() )
-			return error( ures.error() );
-
-		final var QUERY_FMT = "SELECT l.userId FROM Likes l WHERE l.shortId = '%s'";		
-		var query = String.format(QUERY_FMT, shortId);
-		var hits = Hibernate.getInstance().sql(query, String.class);
-		return ok(hits);
+		return errorOrResult( getShort(shortId), shrt -> {
+			
+			var query = format("SELECT l.userId FROM Likes l WHERE l.shortId = '%s'", shortId);					
+			
+			return errorOrValue( okUser( shrt.getOwnerId(), password ), DB.sql(query, String.class));
+		});
 	}
 
 	@Override
 	public Result<List<String>> getFeed(String userId, String password) {
-		Log.info(String.format("getFeed : userId = %s, pwd = %s\n", userId, password));
+		Log.info(format("getFeed : userId = %s, pwd = %s\n", userId, password));
 
-		var ures = getUser(userId, password);
-		if( ! ures.isOK())
-			return error( ures.error() );
-	
 		final var QUERY_FMT = """
 				SELECT s.shortId, s.timestamp FROM Short s WHERE	s.ownerId = '%s'				
 				UNION			
@@ -228,19 +182,25 @@ public class JavaShorts implements ExtendedShorts {
 					WHERE 
 						f.followee = s.ownerId AND f.follower = '%s' 
 				ORDER BY s.timestamp DESC""";
-		
-		var query = String.format(QUERY_FMT, userId, userId);
-		var hits = Hibernate.getInstance().sql(query, String.class);		
-		return ok(hits);
+
+		return errorOrValue( okUser( userId, password), DB.sql( format(QUERY_FMT, userId, userId), String.class));		
 	}
 		
-	protected Result<User> getUser( String userId, String pwd) {
+	protected Result<User> okUser( String userId, String pwd) {
 		try {
 			return usersCache.get( new Credentials(userId, pwd));
 		} catch (Exception x) {
 			x.printStackTrace();
-			return Result.error(ErrorCode.INTERNAL_ERROR);
+			return Result.error(INTERNAL_ERROR);
 		}
+	}
+	
+	private Result<Void> okUser( String userId ) {
+		var res = okUser( userId, "");
+		if( res.error() == FORBIDDEN )
+			return ok();
+		else
+			return error( res.error() );
 	}
 	
 	protected Result<Short> shortFromCache( String shortId ) {
@@ -248,48 +208,52 @@ public class JavaShorts implements ExtendedShorts {
 			return shortsCache.get(shortId);
 		} catch (ExecutionException e) {
 			e.printStackTrace();
-			return error(ErrorCode.INTERNAL_ERROR);
+			return error(INTERNAL_ERROR);
 		}
 	}
 
 	// Extended API 
 	
 	@Override
-	public Result<Void> deleteAllShorts(String userId, String password) {
-		var ures = getUser(userId, password);
-		if( ! ures.isOK() ) 
-			return error( ures.error() );
-		
-		List<Object> toDelete = new ArrayList<>();
+	public Result<Void> deleteAllShorts(String userId, String password, String token) {
+		Log.info(format("deleteAllShorts : userId = %s, token = %s, Token = %s\n", userId, token, Token.get()));
 
-		final var QUERY_FMT1 = "SELECT * FROM Short s WHERE s.ownerId = '%s'";		
-		Hibernate.getInstance().sql(String.format(QUERY_FMT1, userId), Short.class).forEach( s -> {
-			shortsCache.invalidate( s.getShortId() );
-			toDelete.add( s );
+		if( ! Token.matches( token ) )
+			return error(FORBIDDEN);
+		
+		return DB.transaction( (hibernate) -> {
+			
+			usersCache.invalidate( new Credentials(userId, password) );
+			
+			//delete shorts
+			var query1 = format("SELECT * FROM Short s WHERE s.ownerId = '%s'", userId);		
+			hibernate.createNativeQuery(query1, Short.class).list().forEach( s -> {
+				shortsCache.invalidate( s.getShortId() );
+				hibernate.remove(s);
+			});
+			
+			//delete follows
+			var query2 = format("SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'", userId, userId);		
+			hibernate.createNativeQuery(query2, Following.class).list().forEach( hibernate::remove );
+			
+			//delete likes
+			var query3 = format("SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'", userId, userId);		
+			hibernate.createNativeQuery(query3, Likes.class).list().forEach( l -> {
+				shortsCache.invalidate( l.getShortId() );
+				hibernate.remove(l);
+			});
 		});
-		
-		final var QUERY_FMT2 = "SELECT * FROM Following f WHERE f.follower = '%s' OR f.followee = '%s'";		
-		Hibernate.getInstance().sql(String.format(QUERY_FMT2, userId, userId), Following.class).forEach( toDelete::add );
-		
-		final var QUERY_FMT3 = "SELECT * FROM Likes l WHERE l.ownerId = '%s' OR l.userId = '%s'";		
-		Hibernate.getInstance().sql(String.format(QUERY_FMT3, userId, userId), Likes.class).forEach( l -> {
-			shortsCache.invalidate( l.getShortId() );
-			toDelete.add( l );
-		});
-		
-		Hibernate.getInstance().delete( toDelete.toArray() );
-		return ok();
 	}
 
 
-	static record BlobServerCount(String baseURI, Long count) {};	
+	
 	private String getLeastLoadedBlobServerURI() {		
 		final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
-		var hits = Hibernate.getInstance().sql(QUERY, BlobServerCount.class);
+		var hits = DB.sql(QUERY, BlobServerCount.class);
 		
 		var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
 
-		for( var uri : BlobsClients.instances() )
+		for( var uri : BlobsClients.all() )
 			 candidates.putIfAbsent( uri.toString(), 0L);
 
 		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
@@ -297,13 +261,15 @@ public class JavaShorts implements ExtendedShorts {
 		return res.isEmpty() ? "???" : res.get().getKey();
 	}
 	
+	static record BlobServerCount(String baseURI, Long count) {};
 	
 	private long totalShortsInDatabase() {
-		final var QUERY = "SELECT count('*') FROM Short";		
-		var hits = Hibernate.getInstance().sql(QUERY, Long.class);
+		var hits = DB.sql("SELECT count('*') FROM Short", Long.class);
 		return 1L + (hits.isEmpty() ? 0L : hits.get(0));
-
 	}
+
+	
+	
 
 }
 

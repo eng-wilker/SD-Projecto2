@@ -5,6 +5,6 @@ import tukano.api.java.Shorts;
 
 public interface ExtendedShorts extends Shorts {
 
-	Result<Void> deleteAllShorts( String userId, String password );
+	Result<Void> deleteAllShorts( String userId, String password, String token );
 	
 }

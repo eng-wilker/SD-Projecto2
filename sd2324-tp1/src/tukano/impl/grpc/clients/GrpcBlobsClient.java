@@ -60,10 +60,20 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 		});
 	}
 	
-	private Result<Void> _deleteAllBlobs(String userId) {
+	private Result<Void> _deleteAllBlobs(String userId, String token) {
 		return super.toJavaResult(() -> {
 			stub().deleteAllBlobs( DeleteAllBlobsArgs.newBuilder()
 				.setUserId(userId)
+				.setToken( token)
+				.build());			
+		});	
+	}
+	
+	private Result<Void> _delete(String blobId, String token) {
+		return super.toJavaResult(() -> {
+			stub().delete( DeleteArgs.newBuilder()
+				.setBlobId(blobId)
+				.setToken(token)
 				.build());			
 		});	
 	}
@@ -84,8 +94,13 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 	}
 
 	@Override
-	public Result<Void> deleteAllBlobs(String userId) {
-		return super.reTry( () -> _deleteAllBlobs( userId ) );
+	public Result<Void> deleteAllBlobs(String userId, String password) {
+		return super.reTry( () -> _deleteAllBlobs( userId, password ) );
+	}
+
+	@Override
+	public Result<Void> delete(String blobId, String token) {
+		return super.reTry( () -> _delete( blobId, token ) );
 	}
 	
 }

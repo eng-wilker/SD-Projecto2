@@ -27,7 +27,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	}
 
 	private UsersGrpc.UsersBlockingStub  stub() {
-		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+		return _stub.withDeadlineAfter(30, TimeUnit.SECONDS);
 	}
 	
 	public Result<String> _createUser(User user) {
@@ -52,8 +52,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	}
 
 	public Result<User> _updateUser(String userId, String pwd, User user) {
-		return super.toJavaResult(() -> {
-			
+		return super.toJavaResult(() -> {	
 			var res = stub().updateUser(UpdateUserArgs.newBuilder()
 				.setUserId(userId)
 				.setPassword(pwd)

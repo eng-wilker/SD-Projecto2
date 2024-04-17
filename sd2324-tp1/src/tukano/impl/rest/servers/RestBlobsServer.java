@@ -28,6 +28,7 @@ public class RestBlobsServer extends AbstractRestServer {
 	}
 	
 	public static void main(String[] args) {
-		new RestBlobsServer(Args.valueOf(args, "-port", PORT)).start();
+		Args.use(args);
+		new RestBlobsServer(Args.valueOf("-port", PORT)).start();
 	}	
 }

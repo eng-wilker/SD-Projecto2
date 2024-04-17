@@ -7,6 +7,7 @@ import org.glassfish.jersey.server.ResourceConfig;
 import tukano.api.java.Users;
 import tukano.impl.rest.servers.utils.CustomLoggingFilter;
 import tukano.impl.rest.servers.utils.GenericExceptionMapper;
+import utils.Args;
 
 
 public class RestUsersServer extends AbstractRestServer {
@@ -27,6 +28,7 @@ public class RestUsersServer extends AbstractRestServer {
 	}
 	
 	public static void main(String[] args) {
+		Args.use(args);
 		new RestUsersServer().start();
 	}	
 }

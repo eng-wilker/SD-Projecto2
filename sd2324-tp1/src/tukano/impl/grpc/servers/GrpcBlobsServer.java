@@ -17,7 +17,8 @@ public static final int PORT = 15678;
 	
 	public static void main(String[] args) {
 		try {
-			new GrpcBlobsServer(Args.valueOf(args, "-port", PORT)).start();
+			Args.use(args);
+			new GrpcBlobsServer(Args.valueOf("-port", PORT)).start();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

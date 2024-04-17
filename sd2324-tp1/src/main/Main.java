@@ -90,7 +90,7 @@ public class Main {
 		
 		show(shorts.getShorts( "wales" ));
 		
-		show(shorts.deleteAllShorts("wales", "12345"));
+		show(shorts.deleteAllShorts("wales", "12345", ""));
 
 		show(shorts.followers("wales", "12345"));
 

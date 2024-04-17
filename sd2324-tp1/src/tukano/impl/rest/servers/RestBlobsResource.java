@@ -1,12 +1,12 @@
 package tukano.impl.rest.servers;
 
-import tukano.api.java.Blobs;
-import tukano.api.rest.RestBlobs;
+import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.java.servers.JavaBlobs;
+import tukano.impl.api.rest.RestExtendedBlobs;
 
-public class RestBlobsResource extends RestResource implements RestBlobs {
+public class RestBlobsResource extends RestResource implements RestExtendedBlobs {
 
-	final Blobs impl;
+	final ExtendedBlobs impl;
 	public RestBlobsResource() {
 		this.impl = new JavaBlobs();
 	}
@@ -19,5 +19,10 @@ public class RestBlobsResource extends RestResource implements RestBlobs {
 	@Override
 	public byte[] download(String blobId) {
 		return super.resultOrThrow( impl.download( blobId ));
+	}
+
+	@Override
+	public void deleteAllBlobs(String userId, String password) {
+		super.resultOrThrow( impl.deleteAllBlobs( userId, password ));
 	}
 }

@@ -127,12 +127,13 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 		});
 	}
 
-	public Result<Void> _deleteAllShorts(String userId, String password) {
+	public Result<Void> _deleteAllShorts(String userId, String password, String token) {
 		return super.toJavaResult(() -> {
 			stub().deleteAllShorts( 
 					DeleteAllShortsArgs.newBuilder()
-					.setUserId(password)
+					.setUserId(userId)
 					.setPassword(password)
+					.setToken(token)
 					.build());
 		});
 	}
@@ -183,7 +184,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 	}
 
 	@Override
-	public Result<Void> deleteAllShorts(String userId, String password) {
-		return super.reTry( () -> _deleteAllShorts(userId, password));
+	public Result<Void> deleteAllShorts(String userId, String password, String token) {
+		return super.reTry( () -> _deleteAllShorts(userId, password, token));
 	}
 }

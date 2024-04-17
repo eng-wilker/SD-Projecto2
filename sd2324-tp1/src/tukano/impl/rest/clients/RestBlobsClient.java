@@ -5,6 +5,7 @@ import jakarta.ws.rs.core.MediaType;
 import tukano.api.java.Result;
 import tukano.api.rest.RestBlobs;
 import tukano.impl.api.java.ExtendedBlobs;
+import tukano.impl.api.rest.RestExtendedBlobs;
 
 public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 
@@ -27,13 +28,22 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 				.get(), byte[].class);
 	}
 
-	private Result<Void> _deleteAllBlobs(String userId) {
+	private Result<Void> _delete(String blobId, String token) {
 		return super.toJavaResult(
-				target.path(userId)
+				target.path(blobId)
+				.queryParam( RestExtendedBlobs.TOKEN, token )
 				.request()
 				.delete());
 	}
-
+	
+	private Result<Void> _deleteAllBlobs(String userId, String token) {
+		return super.toJavaResult(
+				target.path(userId)
+				.path(RestExtendedBlobs.BLOBS)
+				.queryParam( RestExtendedBlobs.TOKEN, token )
+				.request()
+				.delete());
+	}
 	
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
@@ -45,9 +55,13 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 		return super.reTry( () -> _download(blobId));
 	}
 
-
 	@Override
-	public Result<Void> deleteAllBlobs(String userId) {
-		return super.reTry( () -> _deleteAllBlobs(userId));
+	public Result<Void> delete(String blobId, String token) {
+		return super.reTry( () -> _delete(blobId, token));
+	}
+	
+	@Override
+	public Result<Void> deleteAllBlobs(String userId, String password) {
+		return super.reTry( () -> _deleteAllBlobs(userId, password));
 	}
 }

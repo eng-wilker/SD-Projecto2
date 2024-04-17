@@ -9,6 +9,7 @@ import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.api.rest.RestShorts;
 import tukano.impl.api.java.ExtendedShorts;
+import tukano.impl.api.rest.RestExtendedShorts;
 
 public class RestShortsClient extends RestClient implements ExtendedShorts{
 
@@ -108,12 +109,13 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 				.get(), new GenericType<List<String>>() {});
 	}
 
-	public Result<Void> _deleteAllShorts(String userId, String password) {
+	public Result<Void> _deleteAllShorts(String userId, String password, String token) {
 		return super.toJavaResult(
 				target
 				.path(userId)
 				.path(RestShorts.SHORTS)
-				.queryParam(RestShorts.PWD, password )
+				.queryParam(RestExtendedShorts.PWD, password )
+				.queryParam(RestExtendedShorts.TOKEN, token )
 				.request()
 				.delete());
 	}
@@ -172,7 +174,7 @@ public class RestShortsClient extends RestClient implements ExtendedShorts{
 	}
 
 	@Override
-	public Result<Void> deleteAllShorts(String userId, String password) {
-		return super.reTry( () -> _deleteAllShorts(userId, password));
+	public Result<Void> deleteAllShorts(String userId, String password, String token) {
+		return super.reTry( () -> _deleteAllShorts(userId, password, token));
 	}
 }

@@ -9,8 +9,11 @@ import tukano.api.rest.RestShorts;
 @Path(RestShorts.PATH)
 public interface RestExtendedShorts extends RestShorts {
 
+	String TOKEN = "token";
+
+	
 	@DELETE
 	@Path("/{" + USER_ID + "}" + SHORTS)
-	void deleteAllShorts(@PathParam(USER_ID) String userId, @QueryParam(PWD) String password);
+	void deleteAllShorts(@PathParam(USER_ID) String userId, @QueryParam(PWD) String password, @QueryParam(TOKEN) String token);
 		
 }
