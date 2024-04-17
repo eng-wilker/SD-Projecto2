@@ -24,7 +24,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<String> createUser(User user) {
-		Log.info(String.format("createUser : %s\n", user));
+		Log.info(() -> format("createUser : %s\n", user));
 
 		if (user.userId() == null || user.pwd() == null || user.displayName() == null || user.email() == null)
 			return error(BAD_REQUEST);
@@ -34,7 +34,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> getUser(String userId, String pwd) {
-		Log.info(String.format("getUser : userId = %s, pwd = %s\n", userId, pwd));
+		Log.info( () -> format("getUser : userId = %s, pwd = %s\n", userId, pwd));
 
 		if (userId == null)
 			return error(BAD_REQUEST);
@@ -44,7 +44,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> updateUser(String userId, String pwd, User other) {
-		Log.info(String.format("updateUser : userId = %s, pwd = %s, user: %s\n", userId, pwd, other));
+		Log.info(() -> format("updateUser : userId = %s, pwd = %s, user: %s\n", userId, pwd, other));
 
 		if (userId == null || pwd == null || other.getUserId() != null && ! userId.equals( other.getUserId()))
 			return error(BAD_REQUEST);
@@ -54,7 +54,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<User> deleteUser(String userId, String pwd) {
-		Log.info(String.format("deleteUser : userId = %s, pwd = %s\n", userId, pwd));
+		Log.info(() -> format("deleteUser : userId = %s, pwd = %s\n", userId, pwd));
 
 		if (userId == null || pwd == null )
 			return error(BAD_REQUEST);
@@ -62,8 +62,8 @@ public class JavaUsers implements Users {
 		return errorOrResult( validatedUserOrError(DB.getOne( userId, User.class), pwd), user -> {
 
 			Executors.defaultThreadFactory().newThread( () -> {
-				show("deleteAllShorts", Clients.ShortsClients.get().deleteAllShorts(userId, pwd, Token.get()));
-				Clients.BlobsClients.all().forEach( c -> show("deleteAllBlobs", c.deleteAllBlobs(userId, Token.get())));
+				Clients.ShortsClients.get().deleteAllShorts(userId, pwd, Token.get());
+				Clients.BlobsClients.all().forEach( c -> c.deleteAllBlobs(userId, Token.get()));
 			}).start();
 			
 			
@@ -73,7 +73,7 @@ public class JavaUsers implements Users {
 
 	@Override
 	public Result<List<User>> searchUsers(String pattern) {
-		Log.info(String.format("searchUsers : patterns = %s\n", pattern));
+		Log.info( () -> format("searchUsers : patterns = %s\n", pattern));
 
 		pattern = pattern.toUpperCase();
 
@@ -92,10 +92,5 @@ public class JavaUsers implements Users {
 			return ! user.value().getPwd().equals( pwd ) ? error(FORBIDDEN) : user;
 		else
 			return error( user.error());
-	}
-	
-	private Result<Void> show(String what, Result<Void> res) {
-		System.out.println(what + "---->" + res);
-		return res;
-	}
+	}	
 }

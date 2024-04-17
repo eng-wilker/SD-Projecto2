@@ -1,5 +1,7 @@
 package tukano.impl.java.servers;
 
+import static java.lang.String.format;
+
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
 import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;
@@ -38,7 +40,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> upload(String blobId, byte[] bytes) {
-		Log.info(String.format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
+		Log.info(() -> format("upload : blobId = %s, sha256 = %s\n", blobId, Hex.of(Hash.sha256(bytes))));
 
 		if (!validBlobId(blobId))
 			return error(FORBIDDEN);
@@ -60,7 +62,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<byte[]> download(String blobId) {
-		Log.info(String.format("download : blobId = %s\n", blobId));
+		Log.info(() -> format("download : blobId = %s\n", blobId));
 
 		var file = toFilePath(blobId);
 		if (file == null)
@@ -74,7 +76,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> downloadToSink(String blobId, Consumer<byte[]> sink) {
-		Log.info(String.format("downloadToSink : blobId = %s\n", blobId));
+		Log.info(() -> format("downloadToSink : blobId = %s\n", blobId));
 
 		var file = toFilePath(blobId);
 
@@ -95,7 +97,7 @@ public class JavaBlobs implements ExtendedBlobs {
 
 	@Override
 	public Result<Void> delete(String blobId, String token) {
-		Log.info(String.format("delete : blobId = %s, token=%s\n", blobId, token));
+		Log.info(() -> format("delete : blobId = %s, token=%s\n", blobId, token));
 	
 		if( ! Token.matches( token ) )
 			return error(FORBIDDEN);
@@ -115,7 +117,7 @@ public class JavaBlobs implements ExtendedBlobs {
 	
 	@Override
 	public Result<Void> deleteAllBlobs(String userId, String token) {
-		Log.info(String.format("deleteAllBlobs : userId = %s, token=%s\n", userId, token));
+		Log.info(() -> format("deleteAllBlobs : userId = %s, token=%s\n", userId, token));
 
 		if( ! Token.matches( token ) )
 			return error(FORBIDDEN);
@@ -144,8 +146,4 @@ public class JavaBlobs implements ExtendedBlobs {
 
 		return res;
 	}
-
-	
-
-	
 }

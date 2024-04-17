@@ -75,7 +75,7 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Short> createShort(String userId, String password) {
-		Log.info(format("createShort : userId = %s, pwd = %s\n", userId, password));
+		Log.info(() -> format("createShort : userId = %s, pwd = %s\n", userId, password));
 
 		return errorOrResult( okUser(userId, password), user -> {
 			
@@ -89,7 +89,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Short> getShort(String shortId) {
-		Log.info(format("getShort : shortId = %s\n", shortId));
+		Log.info(() -> format("getShort : shortId = %s\n", shortId));
 
 		if( shortId == null )
 			return error(BAD_REQUEST);
@@ -100,7 +100,7 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Void> deleteShort(String shortId, String password) {
-		Log.info(format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
+		Log.info(() -> format("deleteShort : shortId = %s, pwd = %s\n", shortId, password));
 		
 		return errorOrResult( getShort(shortId), shrt -> {
 			
@@ -121,7 +121,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> getShorts(String userId) {
-		Log.info(format("getShorts : userId = %s\n", userId));
+		Log.info(() -> format("getShorts : userId = %s\n", userId));
 
 		var query = format("SELECT s.shortId FROM Short s WHERE s.ownerId = '%s'", userId);
 		return errorOrValue( okUser(userId), DB.sql( query, String.class));
@@ -129,7 +129,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> follow(String userId1, String userId2, boolean isFollowing, String password) {
-		Log.info(format("follow : userId1 = %s, userId2 = %s, isFollowing = %s, pwd = %s\n", userId1, userId2, isFollowing, password));
+		Log.info(() -> format("follow : userId1 = %s, userId2 = %s, isFollowing = %s, pwd = %s\n", userId1, userId2, isFollowing, password));
 	
 		
 		return errorOrResult( okUser(userId1, password), user -> {
@@ -140,7 +140,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> followers(String userId, String password) {
-		Log.info(format("followers : userId = %s, pwd = %s\n", userId, password));
+		Log.info(() -> format("followers : userId = %s, pwd = %s\n", userId, password));
 
 		var query = format("SELECT f.follower FROM Following f WHERE f.followee = '%s'", userId);		
 		return errorOrValue( okUser(userId, password), DB.sql(query, String.class));
@@ -148,7 +148,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<Void> like(String shortId, String userId, boolean isLiked, String password) {
-		Log.info(format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
+		Log.info(() -> format("like : shortId = %s, userId = %s, isLiked = %s, pwd = %s\n", shortId, userId, isLiked, password));
 
 		
 		return errorOrResult( getShort(shortId), shrt -> {
@@ -161,7 +161,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> likes(String shortId, String password) {
-		Log.info(format("likes : shortId = %s, pwd = %s\n", shortId, password));
+		Log.info(() -> format("likes : shortId = %s, pwd = %s\n", shortId, password));
 
 		return errorOrResult( getShort(shortId), shrt -> {
 			
@@ -173,7 +173,7 @@ public class JavaShorts implements ExtendedShorts {
 
 	@Override
 	public Result<List<String>> getFeed(String userId, String password) {
-		Log.info(format("getFeed : userId = %s, pwd = %s\n", userId, password));
+		Log.info(() -> format("getFeed : userId = %s, pwd = %s\n", userId, password));
 
 		final var QUERY_FMT = """
 				SELECT s.shortId, s.timestamp FROM Short s WHERE	s.ownerId = '%s'				
@@ -216,7 +216,7 @@ public class JavaShorts implements ExtendedShorts {
 	
 	@Override
 	public Result<Void> deleteAllShorts(String userId, String password, String token) {
-		Log.info(format("deleteAllShorts : userId = %s, token = %s, Token = %s\n", userId, token, Token.get()));
+		Log.info(() -> format("deleteAllShorts : userId = %s, password = %s, token = %s\n", userId, password, token));
 
 		if( ! Token.matches( token ) )
 			return error(FORBIDDEN);
@@ -258,7 +258,7 @@ public class JavaShorts implements ExtendedShorts {
 
 		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
 		
-		return res.isEmpty() ? "???" : res.get().getKey();
+		return res.isEmpty() ? "?" : res.get().getKey();
 	}
 	
 	static record BlobServerCount(String baseURI, Long count) {};
@@ -270,6 +270,6 @@ public class JavaShorts implements ExtendedShorts {
 
 	
 	
-
+	
 }
 
