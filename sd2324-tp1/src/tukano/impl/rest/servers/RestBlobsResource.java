@@ -1,8 +1,8 @@
 package tukano.impl.rest.servers;
 
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.java.servers.JavaBlobs;
 import tukano.impl.api.rest.RestExtendedBlobs;
+import tukano.impl.java.servers.JavaBlobs;
 
 public class RestBlobsResource extends RestResource implements RestExtendedBlobs {
 

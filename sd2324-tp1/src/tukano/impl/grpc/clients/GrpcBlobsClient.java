@@ -9,9 +9,11 @@ import com.google.protobuf.ByteString;
 import io.grpc.Deadline;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
-import tukano.impl.grpc.generated_java.BlobsProtoBuf.*;
-import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.DeleteAllBlobsArgs;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.DeleteArgs;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.DownloadArgs;
+import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
 
 public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 

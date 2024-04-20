@@ -3,12 +3,13 @@ package tukano.impl.grpc.clients;
 import static tukano.impl.grpc.common.DataModelAdaptor.GrpcShort_to_Short;
 
 import java.util.List;
+
 import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedShorts;
-import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs;
 import tukano.impl.grpc.generated_java.ShortsGrpc;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.CreateShortArgs;
+import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteAllShortsArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.DeleteShortArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowArgs;
 import tukano.impl.grpc.generated_java.ShortsProtoBuf.FollowersArgs;

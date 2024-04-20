@@ -5,9 +5,7 @@ import static tukano.impl.grpc.common.DataModelAdaptor.User_to_GrpcUser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-import io.grpc.Deadline;
 import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.api.java.Users;

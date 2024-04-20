@@ -1,7 +1,6 @@
 package tukano.impl.java.servers;
 
 import static java.lang.String.format;
-
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
 import static tukano.api.java.Result.ErrorCode.BAD_REQUEST;

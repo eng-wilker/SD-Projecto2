@@ -2,7 +2,8 @@ package tukano.impl.grpc.clients;
 
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.*;
+import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
+import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 
 import java.net.URI;
 import java.util.List;

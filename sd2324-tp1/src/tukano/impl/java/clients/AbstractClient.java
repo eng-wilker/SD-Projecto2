@@ -29,7 +29,6 @@ public class AbstractClient {
 				x.printStackTrace();
 				return Result.error(INTERNAL_ERROR);
 			}
-		System.err.println("TIMEOUT...");
 		return Result.error(TIMEOUT);
 	}
 }
