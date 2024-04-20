@@ -3,8 +3,6 @@ package tukano.impl.grpc.clients;
 import static tukano.impl.grpc.common.DataModelAdaptor.GrpcShort_to_Short;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
 import tukano.api.Short;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedShorts;
@@ -31,7 +29,7 @@ public class GrpcShortsClient extends GrpcClient implements ExtendedShorts {
 	}
 
 	private ShortsGrpc.ShortsBlockingStub stub() {
-		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+		return _stub;
 	}
 	
 	public Result<Short> _createShort(String userId, String password) {

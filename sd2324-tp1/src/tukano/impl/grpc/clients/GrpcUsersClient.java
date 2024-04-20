@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import io.grpc.Deadline;
 import tukano.api.User;
 import tukano.api.java.Result;
 import tukano.api.java.Users;
@@ -27,7 +28,7 @@ public class GrpcUsersClient extends GrpcClient implements Users {
 	}
 
 	private UsersGrpc.UsersBlockingStub  stub() {
-		return _stub.withDeadlineAfter(30, TimeUnit.SECONDS);
+		return _stub;
 	}
 	
 	public Result<String> _createUser(User user) {

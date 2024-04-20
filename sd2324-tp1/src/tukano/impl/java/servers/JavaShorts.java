@@ -15,6 +15,7 @@ import static utils.DB.getOne;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Logger;
@@ -35,13 +36,16 @@ import utils.DB;
 import utils.Token;
 
 public class JavaShorts implements ExtendedShorts {
-	
+	private static final String BLOB_COUNT = "*";
+
 	private static Logger Log = Logger.getLogger(JavaShorts.class.getName());
 
 	AtomicLong counter = new AtomicLong( totalShortsInDatabase() );
 	
 	private static final long USER_CACHE_EXPIRATION = 3000;
 	private static final long SHORTS_CACHE_EXPIRATION = 3000;
+	private static final long BLOBS_USAGE_CACHE_EXPIRATION = 10000;
+
 
 	static record Credentials(String userId, String pwd) {
 		static Credentials from(String userId, String pwd) {
@@ -70,6 +74,24 @@ public class JavaShorts implements ExtendedShorts {
 					var query = format("SELECT count(*) FROM Likes l WHERE l.shortId = '%s'", shortId);
 					var likes = DB.sql(query, Long.class);
 					return errorOrValue( getOne(shortId, Short.class), shrt -> shrt.copyWith( likes.get(0) ) );
+				}
+			});
+	
+	protected final LoadingCache<String, Map<String,Long>> blobCountCache = CacheBuilder.newBuilder()
+			.expireAfterWrite(Duration.ofMillis(BLOBS_USAGE_CACHE_EXPIRATION)).removalListener((e) -> {
+			}).build(new CacheLoader<>() {
+				@Override
+				public Map<String,Long> load(String __) throws Exception {
+					final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
+					var hits = DB.sql(QUERY, BlobServerCount.class);
+					
+					var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
+
+					for( var uri : BlobsClients.all() )
+						 candidates.putIfAbsent( uri.toString(), 0L);
+
+					return candidates;
+
 				}
 			});
 	
@@ -113,7 +135,7 @@ public class JavaShorts implements ExtendedShorts {
 					var query = format("SELECT * FROM Likes l WHERE l.shortId = '%s'", shortId);
 					hibernate.createNativeQuery( query, Likes.class).list().forEach( hibernate::remove);
 					
-					BlobsClients.get( shrt.getBlobUrl() ).deleteUrl(shrt.getBlobUrl(), Token.get() );
+					BlobsClients.get().delete(shrt.getBlobUrl(), Token.get() );
 				});
 			});	
 		});
@@ -247,18 +269,24 @@ public class JavaShorts implements ExtendedShorts {
 
 
 	
-	private String getLeastLoadedBlobServerURI() {		
-		final var QUERY = "SELECT REGEXP_SUBSTRING(s.blobUrl, '^(\\w+:\\/\\/)?([^\\/]+)\\/([^\\/]+)') AS baseURI, count('*') AS usage From Short s GROUP BY baseURI";		
-		var hits = DB.sql(QUERY, BlobServerCount.class);
-		
-		var candidates = hits.stream().collect( Collectors.toMap( BlobServerCount::baseURI, BlobServerCount::count));
-
-		for( var uri : BlobsClients.all() )
-			 candidates.putIfAbsent( uri.toString(), 0L);
-
-		var res = candidates.entrySet().stream().sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue())).findFirst();
-		
-		return res.isEmpty() ? "?" : res.get().getKey();
+	private String getLeastLoadedBlobServerURI() {
+		try {
+			var servers = blobCountCache.get(BLOB_COUNT);
+			
+			var	leastLoadedServer = servers.entrySet()
+					.stream()
+					.sorted( (e1, e2) -> Long.compare(e1.getValue(), e2.getValue()))
+					.findFirst();
+			
+			if( leastLoadedServer.isPresent() )  {
+				var uri = leastLoadedServer.get().getKey();
+				servers.compute( uri, (k, v) -> v + 1L);				
+				return uri;
+			}
+		} catch( Exception x ) {
+			x.printStackTrace();
+		}
+		return "?";
 	}
 	
 	static record BlobServerCount(String baseURI, Long count) {};

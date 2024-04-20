@@ -10,12 +10,12 @@ import tukano.api.java.Result;
 public class DB {
 
 	public static <T> List<T> sql(String query, Class<T> clazz) {
-		return Hibernate.getInstance().sqlX(query, clazz);
+		return Hibernate.getInstance().sql(query, clazz);
 	}
 	
 	
 	public static <T> List<T> sqlX(Class<T> clazz, String fmt, Object ... args) {
-		return Hibernate.getInstance().sqlX(String.format(fmt, args), clazz);
+		return Hibernate.getInstance().sql(String.format(fmt, args), clazz);
 	}
 	
 	

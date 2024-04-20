@@ -2,7 +2,7 @@ package tukano.impl.grpc.clients;
 
 import static tukano.api.java.Result.error;
 import static tukano.api.java.Result.ok;
-import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
+import static tukano.api.java.Result.ErrorCode.*;
 
 import java.net.URI;
 import java.util.List;
@@ -17,14 +17,11 @@ import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
 import tukano.api.java.Result;
 import tukano.api.java.Result.ErrorCode;
-import utils.Sleep;
 
 public class GrpcClient {
 	private static Logger Log = Logger.getLogger(GrpcClient.class.getName());
 
-	protected static final int MAX_RETRIES = 10;
-	protected static final int RETRY_SLEEP = 500;
-	protected static final int GRPC_TIMEOUT = 3000;
+	protected static final int GRPC_TIMEOUT = 30;
 
 	final protected URI serverURI;
 	final protected Channel channel;
@@ -32,14 +29,11 @@ public class GrpcClient {
 	protected GrpcClient(String serverUrl) {
 		this.serverURI = URI.create(serverUrl);
 		this.channel = ManagedChannelBuilder.forAddress(serverURI.getHost(), serverURI.getPort())
-				.usePlaintext().enableRetry()
-				.disableServiceConfigLookUp()
-				.defaultServiceConfig( buildServiceConfig()).build();
-		
-
+				.usePlaintext().enableRetry().build();
 	}
 	
 	protected <T> Result<T> reTry(Supplier<Result<T>> func) {
+		long T0 = System.currentTimeMillis();
 		try {
 			var res = func.get();
 			Log.info("OK: " + res + "\n");
@@ -48,12 +42,15 @@ public class GrpcClient {
 			var code = sre.getStatus().getCode();
 			if (code == Code.UNAVAILABLE || code == Code.DEADLINE_EXCEEDED) {
 				Log.info("Timeout: " + sre.getMessage() + "\n");
-				Sleep.ms(RETRY_SLEEP);
+				Log.info("OK? ->" + sre.getStatus().isOk());
+				return Result.error(TIMEOUT);
 			}
 			return error(statusToErrorCode(sre.getStatus()));
 		} catch (Exception x) {
 			x.printStackTrace();
 			return Result.error(INTERNAL_ERROR);
+		}finally {
+			Log.info(String.format("ReTry TOOK: %d\n", System.currentTimeMillis()-T0));
 		}
 	}
 

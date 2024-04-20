@@ -46,7 +46,7 @@ public class JavaUsers implements Users {
 	public Result<User> updateUser(String userId, String pwd, User other) {
 		Log.info(() -> format("updateUser : userId = %s, pwd = %s, user: %s\n", userId, pwd, other));
 
-		if (userId == null || pwd == null || other.getUserId() != null && ! userId.equals( other.getUserId()))
+		if (badUpdateUserInfo(userId, pwd, other))
 			return error(BAD_REQUEST);
 
 		return errorOrResult( validatedUserOrError(DB.getOne( userId, User.class), pwd), user -> DB.updateOne( user.updateFrom(other)));
@@ -75,9 +75,7 @@ public class JavaUsers implements Users {
 	public Result<List<User>> searchUsers(String pattern) {
 		Log.info( () -> format("searchUsers : patterns = %s\n", pattern));
 
-		pattern = pattern.toUpperCase();
-
-		var query = format("SELECT * FROM User u WHERE UPPER(u.userId) LIKE '%%%s%%'", pattern);
+		var query = format("SELECT * FROM User u WHERE UPPER(u.userId) LIKE '%%%s%%'", pattern.toUpperCase());
 		var hits = DB.sql(query, User.class)
 				.stream()
 				.map(User::copyWithoutPassword)
@@ -87,10 +85,14 @@ public class JavaUsers implements Users {
 	}
 
 	
-	private Result<User> validatedUserOrError( Result<User> user, String pwd ) {
-		if( user.isOK())
-			return ! user.value().getPwd().equals( pwd ) ? error(FORBIDDEN) : user;
+	private Result<User> validatedUserOrError( Result<User> res, String pwd ) {
+		if( res.isOK())
+			return ! res.value().getPwd().equals( pwd ) ? error(FORBIDDEN) : res;
 		else
-			return error( user.error());
-	}	
+			return res;
+	}
+	
+	private boolean badUpdateUserInfo( String userId, String pwd, User info) {
+		return (userId == null || pwd == null || info.getUserId() != null && ! userId.equals( info.getUserId()));
+	}
 }

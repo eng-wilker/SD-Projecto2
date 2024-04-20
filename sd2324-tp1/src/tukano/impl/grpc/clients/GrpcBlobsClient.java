@@ -6,12 +6,11 @@ import java.util.function.Consumer;
 
 import com.google.protobuf.ByteString;
 
+import io.grpc.Deadline;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.*;
 import tukano.impl.grpc.generated_java.BlobsProtoBuf.UploadArgs;
-import utils.Hash;
-import utils.Hex;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
 
 public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
@@ -24,7 +23,7 @@ public class GrpcBlobsClient extends GrpcClient implements ExtendedBlobs {
 	}
 
 	private BlobsGrpc.BlobsBlockingStub stub() {
-		return _stub.withDeadlineAfter( GRPC_TIMEOUT, TimeUnit.MILLISECONDS );
+		return _stub.withDeadline(Deadline.after(30L, TimeUnit.SECONDS));
 	}
 	
 	private Result<Void> _upload(String blobId, byte[] bytes) {
