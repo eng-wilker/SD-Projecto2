@@ -48,104 +48,29 @@ public class Hibernate {
 		return instance;
 	}
 
-	/**
-	 * Persists one or more objects to storage
-	 * 
-	 * @param objects - the objects to persist
-	 */
-	public Result<Void> persist(Object... objects) {
-		Transaction tx = null;
-		try (var session = sessionFactory.openSession()) {
-			tx = session.beginTransaction();
-			for (var o : objects)
-				session.persist(o);
-			tx.commit();
-			return Result.ok();
-		} catch (ConstraintViolationException __) {
-			return Result.error(ErrorCode.CONFLICT);
-		} catch (Exception e) {
-			if (tx != null)
-				tx.rollback();
-			throw e;
-		}
+	public Result<Void> persistOne(Object  obj) {
+		return execute( (hibernate) -> {
+			hibernate.persist( obj );
+		});
 	}
 
-//	/**
-//	 * Updates one or more objects previously persisted.
-//	 * 
-//	 * @param objects - the objects to update
-//	 */
-//	public Result<Void> update(Object... objects) {
-//		Transaction tx = null;
-//		try (var session = sessionFactory.openSession()) {
-//			tx = session.beginTransaction();
-//			for (var o : objects)
-//				if (session.merge(o) != null) {
-//					tx.rollback();
-//					return Result.error(ErrorCode.NOT_FOUND);
-//				}
-//			tx.commit();
-//			return Result.ok();
-//		} catch (Exception e) {
-//			if (tx != null)
-//				tx.rollback();
-//			throw e;
-//		}
-//	}
-
-//	/**
-//	 * Removes one or more objects from storage
-//	 * 
-//	 * @param objects - the objects to remove from storage
-//	 */
-//	public void delete(Object... objects) {
-//		Transaction tx = null;
-//		try (var session = sessionFactory.openSession()) {
-//			tx = session.beginTransaction();
-//			for (var o : objects)
-//				session.remove(o);
-//			tx.commit();
-//		} catch (Exception e) {
-//			if (tx != null)
-//				tx.rollback();
-//			throw e;
-//		}
-//	}
-
-//	/**
-//	 * Performs a jpql Hibernate query (SQL dialect)
-//	 * 
-//	 * @param <T>           The type of objects returned by the query
-//	 * @param jpqlStatement - the jpql query statement
-//	 * @param clazz         - the class of the objects that will be returned
-//	 * @return - list of objects that match the query
-//	 */
-//	public <T> List<T> jpql(String jpqlStatement, Class<T> clazz) {
-//		try (var session = sessionFactory.openSession()) {
-//			var query = session.createQuery(jpqlStatement, clazz);
-//			return query.list();
-//		} catch (Exception e) {
-//			throw e;
-//		}
-//	}
-
-	/**
-	 * Performs a (native) SQL query
-	 * 
-	 * @param <T>           The type of objects returned by the query
-	 * @param jpqlStatement - the jpql query statement
-	 * @param clazz         - the class of the objects that will be returned
-	 * @return - list of objects that match the query
-	 */
-	public <T> List<T> sql(String sqlStatement, Class<T> clazz) {
-		try (var session = sessionFactory.openSession()) {
-			var query = session.createNativeQuery(sqlStatement, clazz);
-			return query.list();
-		} catch (Exception e) {
-			throw e;
-		}
+	public <T> Result<T> updateOne(T obj) {
+		return execute( hibernate -> {
+			var res = hibernate.merge( obj );
+			if( res == null)
+				return Result.error( ErrorCode.NOT_FOUND );
+			
+			return Result.ok( res );
+		});
 	}
-
+	
+	public <T> Result<T> deleteOne(T obj) {
+		return execute( hibernate -> {
+			hibernate.remove( obj );
+			return Result.ok( obj );
+		});
+	}
+		
 	public <T> Result<T> getOne(Object id, Class<T> clazz) {
 		try (var session = sessionFactory.openSession()) {
 			var res = session.find(clazz, id);
@@ -157,66 +82,21 @@ public class Hibernate {
 			throw e;
 		}
 	}
-
-//	public <T> Result<T> updateOne(T obj) {
-//		Transaction tx = null;
-//		try (var session = sessionFactory.openSession()) {
-//			tx = session.beginTransaction();
-//			var res = session.merge(obj);
-//			tx.commit();
-//			if (res == null)
-//				return Result.error(ErrorCode.NOT_FOUND);
-//			else
-//				return Result.ok(res);
-//		} catch (Exception e) {
-//			if (tx != null)
-//				tx.rollback();
-//			throw e;
-//		}
-//	}
-
-//	public <T> Result<T> deleteOne(T obj) {
-//		Transaction tx = null;
-//		try (var session = sessionFactory.openSession()) {
-//			tx = session.beginTransaction();
-//			session.remove(obj);
-//			session.flush();
-//			tx.commit();
-//			return Result.ok( obj );
-//		} catch (Exception e) {
-//			throw e;
-//		}
-//	}
-	public <T> Result<T> updateOne(T obj) {
-		return execute( hibernate -> {
-			var res = hibernate.merge( obj );
-			if( res == null)
-				return Result.error( ErrorCode.NOT_FOUND );
-			
-			return Result.ok( res );
-		});
-	}
-	public <T> Result<T> deleteOne(T obj) {
-		return execute( hibernate -> {
-			hibernate.remove( obj );
-			return Result.ok( obj );
-		});
-	}
-		
-	public <T> Result<T> execute(Consumer<Session> proc) {
-		Transaction tx = null;
+	
+	public <T> List<T> sql(String sqlStatement, Class<T> clazz) {
 		try (var session = sessionFactory.openSession()) {
-			tx = session.beginTransaction();
-			proc.accept(session);
-			session.flush();
-			tx.commit();
-			return Result.ok();
+			var query = session.createNativeQuery(sqlStatement, clazz);
+			return query.list();
 		} catch (Exception e) {
-			if( tx != null )
-				tx.rollback();
-			e.printStackTrace();
 			throw e;
 		}
+	}
+	
+	public <T> Result<T> execute(Consumer<Session> proc) {
+		return execute( (hibernate) -> {
+			proc.accept( hibernate);
+			return Result.ok();
+		});
 	}
 	
 	public <T> Result<T> execute(Function<Session, Result<T>> func) {
@@ -227,7 +107,12 @@ public class Hibernate {
 			session.flush();
 			tx.commit();
 			return res;
-		} catch (Exception e) {
+		}
+		catch (ConstraintViolationException __) {
+			
+			return Result.error(ErrorCode.CONFLICT);
+		}  
+		catch (Exception e) {
 			if( tx != null )
 				tx.rollback();
 			

@@ -27,8 +27,8 @@ public class JavaUsers implements Users {
 	public Result<String> createUser(User user) {
 		Log.info(() -> format("createUser : %s\n", user));
 
-		if (user.userId() == null || user.pwd() == null || user.displayName() == null || user.email() == null)
-			return error(BAD_REQUEST);
+		if( badUserInfo( user ) )
+				return error(BAD_REQUEST);
 
 		return errorOrValue( DB.insertOne( user), user.getUserId() );
 	}
@@ -62,6 +62,7 @@ public class JavaUsers implements Users {
 
 		return errorOrResult( validatedUserOrError(DB.getOne( userId, User.class), pwd), user -> {
 
+			// Delete user shorts and related info asynchronously in a separate thread
 			Executors.defaultThreadFactory().newThread( () -> {
 				Clients.ShortsClients.get().deleteAllShorts(userId, pwd, Token.get());
 				Clients.BlobsClients.all().forEach( c -> c.deleteAllBlobs(userId, Token.get()));
@@ -88,9 +89,13 @@ public class JavaUsers implements Users {
 	
 	private Result<User> validatedUserOrError( Result<User> res, String pwd ) {
 		if( res.isOK())
-			return ! res.value().getPwd().equals( pwd ) ? error(FORBIDDEN) : res;
+			return res.value().getPwd().equals( pwd ) ? res : error(FORBIDDEN);
 		else
 			return res;
+	}
+	
+	private boolean badUserInfo( User user) {
+		return (user.userId() == null || user.pwd() == null || user.displayName() == null || user.email() == null);
 	}
 	
 	private boolean badUpdateUserInfo( String userId, String pwd, User info) {

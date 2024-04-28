@@ -7,7 +7,7 @@
 	<version>1</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<authors>smd</authors>
+		<authors>xxxxx-yyyyy</authors>
 	</properties>
 	<build>
 		<sourceDirectory>src</sourceDirectory>
@@ -30,7 +30,7 @@
 						<include>${project.basedir}/src/tukano/api/grpc</include>
 						<include>${project.basedir}/src/tukano/impl/api/grpc</include>
 					</inputDirectories>
-						
+
 					<outputDirectory>src/</outputDirectory>
 				</configuration>
 				<executions>
@@ -76,7 +76,7 @@
 				<configuration>
 					<images>
 						<image>
-							<name>smduarte/${project.artifactId}</name>
+							<name>${project.artifactId}-${authors}</name>
 							<build>
 								<dockerFile>${project.basedir}/Dockerfile</dockerFile>
 							</build>

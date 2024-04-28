@@ -18,5 +18,4 @@ public class Clients {
 	public static final ClientFactory<ExtendedBlobs> BlobsClients = new ClientFactory<>(Blobs.NAME, RestBlobsClient::new, GrpcBlobsClient::new);
 
 	public static final ClientFactory<ExtendedShorts> ShortsClients = new ClientFactory<>(Shorts.NAME, RestShortsClient::new, GrpcShortsClient::new);	
-	
 }

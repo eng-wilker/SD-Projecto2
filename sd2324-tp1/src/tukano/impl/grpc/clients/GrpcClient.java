@@ -6,23 +6,17 @@ import static tukano.api.java.Result.ErrorCode.INTERNAL_ERROR;
 import static tukano.api.java.Result.ErrorCode.TIMEOUT;
 
 import java.net.URI;
-import java.util.List;
-import java.util.Map;
 import java.util.function.Supplier;
-import java.util.logging.Logger;
 
 import io.grpc.Channel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
-import io.grpc.Status.Code;
 import io.grpc.StatusRuntimeException;
+import io.grpc.Status.Code;
 import tukano.api.java.Result;
 import tukano.api.java.Result.ErrorCode;
 
 public class GrpcClient {
-	private static Logger Log = Logger.getLogger(GrpcClient.class.getName());
-
-	protected static final int GRPC_TIMEOUT = 30;
 
 	final protected URI serverURI;
 	final protected Channel channel;
@@ -33,35 +27,22 @@ public class GrpcClient {
 				.usePlaintext().enableRetry().build();
 	}
 	
-	protected <T> Result<T> reTry(Supplier<Result<T>> func) {
-		long T0 = System.currentTimeMillis();
+	protected <T> Result<T> toJavaResult(Supplier<T> func) {
 		try {
-			var res = func.get();
-			Log.info("OK: " + res + "\n");
-			return res;
+			return ok(func.get());
 		} catch (StatusRuntimeException sre) {
-			var code = sre.getStatus().getCode();
-			if (code == Code.UNAVAILABLE || code == Code.DEADLINE_EXCEEDED) {
-				Log.info("Timeout: " + sre.getMessage() + "\n");
-				Log.info("OK? ->" + sre.getStatus().isOk());
-				return Result.error(TIMEOUT);
-			}
 			return error(statusToErrorCode(sre.getStatus()));
 		} catch (Exception x) {
 			x.printStackTrace();
 			return Result.error(INTERNAL_ERROR);
-		}finally {
-			Log.info(String.format("ReTry TOOK: %d\n", System.currentTimeMillis()-T0));
 		}
 	}
 
-	protected <T> Result<T> toJavaResult(Supplier<T> func) {
-		return ok(func.get());
-	}
-
 	protected Result<Void> toJavaResult(Runnable proc) {
-		proc.run();
-		return ok();
+		return toJavaResult( () -> {
+			proc.run();
+			return null;
+		} );		
 	}
 
 	protected static ErrorCode statusToErrorCode(Status status) {
@@ -75,30 +56,6 @@ public class GrpcClient {
 		default -> ErrorCode.INTERNAL_ERROR;
 		};
 	}
-
-	
-	public Map<String, Object> buildServiceConfig() {
-
-	    return Map.of(
-	        "loadBalancingConfig",
-	            List.of(
-	                Map.of("weighted_round_robin", Map.of()),
-	                Map.of("round_robin", Map.of()),
-	                Map.of("pick_first", Map.of("shuffleAddressList", true))),
-	        "methodConfig",
-	            List.of(
-	                Map.of(
-	                    "name", List.of(Map.of("service", "")),
-	                    "waitForReady", true,
-	                    "retryPolicy",
-	                        Map.of(
-	                            "maxAttempts", 4.0,
-	                            "initialBackoff", "0.5s",
-	                            "backoffMultiplier", 1.0,
-	                            "maxBackoff", "1.0s",
-	                            "retryableStatusCodes", List.of("UNAVAILABLE")))));
-	  }
-
 	
 	@Override
 	public String toString() {

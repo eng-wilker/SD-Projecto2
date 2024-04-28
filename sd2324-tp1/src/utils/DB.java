@@ -12,13 +12,7 @@ public class DB {
 	public static <T> List<T> sql(String query, Class<T> clazz) {
 		return Hibernate.getInstance().sql(query, clazz);
 	}
-	
-	
-	public static <T> List<T> sqlX(Class<T> clazz, String fmt, Object ... args) {
-		return Hibernate.getInstance().sql(String.format(fmt, args), clazz);
-	}
-	
-	
+		
 	public static <T> Result<T> getOne(String id, Class<T> clazz) {
 		return Hibernate.getInstance().getOne(id, clazz);
 	}
@@ -32,7 +26,7 @@ public class DB {
 	}
 	
 	public static <T> Result<T> insertOne( T obj) {
-		return Result.errorOrValue(Hibernate.getInstance().persist(obj), obj);
+		return Result.errorOrValue(Hibernate.getInstance().persistOne(obj), obj);
 	}
 	
 	public static <T> Result<T> transaction( Consumer<Session> c) {

@@ -2,14 +2,13 @@ package tukano.impl.java.clients;
 
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.List;
 import java.util.function.Function;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-import tukano.api.java.Blobs;
 import tukano.api.java.Result;
 import tukano.impl.discovery.Discovery;
 
@@ -47,8 +46,7 @@ public class ClientFactory<T> {
 	}
 	
 	public T get() {
-		var uris = Discovery.getInstance().knownUrisOf(serviceName, 1);
-		return get(uris[0]);
+		return get(Discovery.getInstance().knownUrisOf(serviceName, 1)[0]);
 	}
 	
 	public T get(URI uri) {
@@ -60,7 +58,7 @@ public class ClientFactory<T> {
 		}
 	}	
 			
-	public Collection<T> all() {
+	public List<T> all() {
 		return Arrays.asList( Discovery.getInstance().knownUrisOf(serviceName, 1) ).stream().map( this::get ).toList();
 	}
 }

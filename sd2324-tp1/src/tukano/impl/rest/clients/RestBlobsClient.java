@@ -17,14 +17,14 @@ public class RestBlobsClient extends RestClient implements ExtendedBlobs {
 		return super.toJavaResult(
 				target.path(blobId)
 				.request()
-				.post( Entity.entity(bytes, MediaType.APPLICATION_OCTET_STREAM_TYPE)));
+				.post( Entity.entity(bytes, MediaType.APPLICATION_OCTET_STREAM)));
 	}
 
 	private Result<byte[]> _download(String blobId) {
 		return super.toJavaResult(
 				target.path(blobId)
 				.request()
-				.accept(MediaType.APPLICATION_OCTET_STREAM_TYPE)
+				.accept(MediaType.APPLICATION_OCTET_STREAM)
 				.get(), byte[].class);
 	}
 
