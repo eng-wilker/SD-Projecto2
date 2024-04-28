@@ -1,12 +1,10 @@
 package tukano.impl.grpc.clients;
 
 import java.io.ByteArrayOutputStream;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.google.protobuf.ByteString;
 
-import io.grpc.Deadline;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.grpc.generated_java.BlobsGrpc;
