@@ -7,6 +7,7 @@ import tukano.impl.java.servers.JavaBlobs;
 public class RestBlobsResource extends RestResource implements RestExtendedBlobs {
 
 	final ExtendedBlobs impl;
+	
 	public RestBlobsResource() {
 		this.impl = new JavaBlobs();
 	}
@@ -21,6 +22,11 @@ public class RestBlobsResource extends RestResource implements RestExtendedBlobs
 		return super.resultOrThrow( impl.download( blobId ));
 	}
 
+	@Override
+	public void delete(String blobId, String token) {
+		super.resultOrThrow( impl.delete( blobId, token ));
+	}
+	
 	@Override
 	public void deleteAllBlobs(String userId, String password) {
 		super.resultOrThrow( impl.deleteAllBlobs( userId, password ));
