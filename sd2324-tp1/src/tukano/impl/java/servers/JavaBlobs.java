@@ -22,14 +22,12 @@ import java.util.logging.Logger;
 import tukano.api.java.Result;
 import tukano.impl.api.java.ExtendedBlobs;
 import tukano.impl.java.clients.Clients;
-import utils.Args;
 import utils.Hash;
 import utils.Hex;
 import utils.IO;
 import utils.Token;
 
 public class JavaBlobs implements ExtendedBlobs {
-	private static final String ADMIN_TOKEN = Args.valueOf("-token", "");
 	
 	private static final String BLOBS_ROOT_DIR = "/tmp/blobs/";
 	
